@@ -1,0 +1,834 @@
+/* ---------- 插圖 ---------- */
+.stage {
+  padding: 10px 10px 4px;
+}
+
+.jmap {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-sans);
+}
+
+.jmap.is-narrow {
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.zone rect {
+  fill: var(--zone-home);
+  stroke: var(--zone-stroke);
+  stroke-width: 1;
+  stroke-dasharray: 5 4;
+}
+
+.zone--cloud rect {
+  fill: var(--zone-cloud);
+  stroke: var(--zone-cloud-stroke);
+}
+
+.zone--subnet rect {
+  fill: var(--zone-subnet);
+  stroke: var(--zone-cloud-stroke);
+  stroke-dasharray: 2 3;
+}
+
+.zone text {
+  font-size: 11.5px;
+  font-weight: 500;
+  fill: var(--text-3);
+}
+
+.seg-line,
+.seg-band,
+.seg-flow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seg-band {
+  stroke: var(--tls-band);
+  stroke-width: 16;
+}
+
+.seg--tls .seg-line {
+  stroke: var(--tls);
+  stroke-width: 2.5;
+}
+
+.seg--plain .seg-line {
+  stroke: var(--plain);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+
+.seg--dns .seg-line {
+  stroke: var(--dns);
+  stroke-width: 2;
+  stroke-dasharray: 0.5 6;
+}
+
+.seg--db .seg-line {
+  stroke: var(--db);
+  stroke-width: 2;
+}
+
+.seg-flow {
+  stroke: var(--packet);
+  stroke-width: 3.5;
+  stroke-dasharray: 2 12;
+  animation: seg-flow 0.9s linear infinite;
+}
+
+.seg-flow.is-back {
+  animation-direction: reverse;
+}
+
+@keyframes seg-flow {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+.tunnel-bracket {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.tunnel--tls .tunnel-bracket {
+  stroke: var(--tls);
+}
+
+.tunnel--plain .tunnel-bracket {
+  stroke: var(--plain);
+  stroke-dasharray: 4 3;
+}
+
+.tunnel-label,
+.seg-label,
+.jnode-label {
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.tunnel-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tunnel--tls .tunnel-label {
+  fill: var(--tls-text);
+}
+
+.tunnel--plain .tunnel-label {
+  fill: var(--text-2);
+}
+
+.lock-glyph rect {
+  fill: var(--tls);
+}
+
+.lock-glyph path {
+  fill: none;
+  stroke: var(--tls);
+  stroke-width: 1.5;
+}
+
+.seg-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  fill: var(--text-2);
+}
+
+.jnode {
+  cursor: pointer;
+  outline: none;
+}
+
+.jnode-hit {
+  fill: transparent;
+  stroke: none;
+}
+
+.jnode:focus-visible .jnode-hit {
+  stroke: var(--focus);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.jnode .m-body {
+  fill: var(--node-fill);
+  stroke: var(--node-stroke);
+  stroke-width: 1.2;
+  transition:
+    fill 0.3s,
+    stroke 0.3s;
+}
+
+.jnode .m-inner {
+  fill: var(--node-inner);
+  transition: fill 0.3s;
+}
+
+.jnode .m-line {
+  fill: none;
+  stroke: var(--node-stroke);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+
+.jnode .m-led {
+  fill: var(--node-led);
+}
+
+.jnode .m-text {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--node-text);
+}
+
+.jnode .m-text--small {
+  font-size: 10.5px;
+}
+
+.jnode-label {
+  font-size: 12.5px;
+  font-weight: 500;
+  fill: var(--text-2);
+}
+
+.jnode:hover .m-body {
+  stroke: var(--node-active-stroke);
+}
+
+.jnode.is-active .m-body {
+  fill: var(--node-active-fill);
+  stroke: var(--node-active-stroke);
+  stroke-width: 1.8;
+}
+
+.jnode.is-active .m-inner {
+  fill: var(--node-active-inner);
+}
+
+.jnode.is-active .m-led {
+  fill: var(--node-active-led);
+}
+
+.jnode.is-active .m-line {
+  stroke: var(--node-active-stroke);
+  opacity: 1;
+}
+
+.jnode.is-active .m-text,
+.jnode.is-active .jnode-label {
+  fill: var(--text);
+  font-weight: 700;
+}
+
+.packet {
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+.packet-halo {
+  fill: var(--packet-halo);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: packet-pulse 1.8s ease-out infinite;
+}
+
+.packet-body {
+  fill: var(--packet);
+  stroke: var(--surface);
+  stroke-width: 1.2;
+}
+
+.packet-flap {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+@keyframes packet-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ---------- 圖例 ---------- */
+.jlegend {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 10px 8px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.jlegend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jlegend path {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.legend-band {
+  stroke: var(--tls-band);
+  stroke-width: 10;
+}
+
+.legend-tls {
+  stroke: var(--tls);
+  stroke-width: 2.5;
+}
+
+.legend-plain {
+  stroke: var(--plain);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+  stroke-linecap: butt !important;
+}
+
+.legend-dns {
+  stroke: var(--dns);
+  stroke-width: 2;
+  stroke-dasharray: 0.5 6;
+}
+
+.legend-db {
+  stroke: var(--db);
+  stroke-width: 2;
+}
+
+/* ---------- 控制列 ---------- */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  margin: 16px 0;
+}
+
+.controls-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.counter {
+  min-width: 58px;
+  text-align: center;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+}
+
+.progress {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+  flex: 1 1 240px;
+}
+
+.progress li {
+  flex: 1 1 0;
+}
+
+.progress button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.progress button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: var(--surface-3);
+  transition:
+    background 0.2s,
+    height 0.2s;
+}
+
+.progress button:hover::before {
+  background: var(--text-3);
+}
+
+.progress button.is-done::before {
+  background: color-mix(in srgb, var(--packet) 45%, var(--surface-3));
+}
+
+.progress button.is-current::before {
+  height: 10px;
+  background: var(--packet);
+}
+
+.kbd-hint {
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+@media (hover: none) {
+  .kbd-hint {
+    display: none;
+  }
+}
+
+/* ---------- 符合畫面：改成三欄並等比例縮放，一個畫面看完不用上下捲動 ---------- */
+/* zoom 讓字、插圖、間距一起縮，比例由 useFitZoom 依視窗高度計算 */
+.journey.is-fit {
+  zoom: var(--fit-zoom, 1);
+  display: grid;
+  gap: 14px 16px;
+  padding-top: 16px;
+}
+
+.journey.is-fit .page-head {
+  padding: 0;
+}
+
+.journey.is-fit .page-head h1 {
+  font-size: 28px;
+}
+
+.journey.is-fit .page-sub {
+  margin-top: 2px;
+  font-size: 16px;
+}
+
+.journey.is-fit .disclaimer {
+  margin-top: 8px;
+}
+
+.journey.is-fit .controls {
+  margin: 0;
+}
+
+/* 目前這一站 + 每一站的隱藏副本疊在同一格，高度取最高那一站 */
+.step-stack {
+  display: grid;
+  min-width: 0;
+}
+
+.step-stack-item {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* 第一個面板撐滿剩下的高度，後面的面板貼齊格子底部：切換步驟時卡片邊緣不亂跳 */
+.step-stack-item {
+  gap: 14px;
+}
+
+.step-stack-item > .panel:first-child {
+  flex: 1;
+}
+
+.step-ghost {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 三欄：左欄插圖與控制列；中間這一站的說明與宿主鏈；右邊封包信封。
+   寬度不另外設定：縮放後內部排版寬度 = 容器寬 ÷ 比例，三欄剛好填滿畫面寬度，
+   所以中等寬度的視窗也用同一套三欄，只是比例小一點 */
+.journey.is-fit {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.journey-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* ---------- 三個面板 ---------- */
+.journey-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1120px) {
+  .journey-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .step-panel {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .journey-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.step-kicker {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--packet);
+}
+
+.step-title {
+  margin: 4px 0 8px;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
+.step-desc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: var(--text-2);
+}
+
+.step-note {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--st-e-bg);
+  color: var(--st-e-text);
+  border: 1px solid var(--st-e-border);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.step-note strong {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.mini-title {
+  margin: 18px 0 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.owner {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.owner div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.owner dt {
+  color: var(--text-3);
+}
+
+.owner dd {
+  margin: 0;
+}
+
+/* ---------- 封包信封 ---------- */
+.env {
+  --st-bg: var(--surface);
+  --st-border: var(--border-strong);
+  margin-top: 6px;
+  padding: 7px 7px 8px;
+  border: 1.5px solid var(--st-border);
+  border-radius: 10px;
+  background: var(--st-bg);
+  transition:
+    background 0.3s,
+    border-color 0.3s;
+}
+
+.envelope > .env {
+  margin-top: 0;
+}
+
+.env.st-s {
+  --st-bg: transparent;
+  border-style: dashed;
+}
+
+.env.st-e {
+  --st-bg: var(--st-e-bg);
+  --st-border: var(--st-e-border);
+}
+
+.env.st-o {
+  --st-bg: var(--st-o-bg);
+  --st-border: var(--st-o-border);
+}
+
+.env.st-r {
+  --st-bg: var(--st-r-bg);
+  --st-border: var(--st-r-border);
+}
+
+.env.st-n {
+  --st-bg: transparent;
+  --st-border: var(--border-strong);
+  border-style: dotted;
+  border-width: 1.5px;
+}
+
+.env.st-n > .env-head {
+  opacity: 0.5;
+}
+
+.env-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 24px;
+}
+
+.env-tag {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.env-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.env-hint {
+  margin-left: 6px;
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.env-field {
+  position: relative;
+  margin: 6px 0 0;
+}
+
+.env-field code {
+  display: block;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.env-field.is-veiled code {
+  filter: blur(3.5px);
+  user-select: none;
+}
+
+.env-veil {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--st-e-text);
+}
+
+.state-chip {
+  --chip-bg: var(--surface-2);
+  --chip-text: var(--text-2);
+  --chip-border: var(--border);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--chip-border);
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.state-chip.st-s {
+  --chip-bg: transparent;
+  --chip-border: var(--border-strong);
+  border-style: dashed;
+}
+
+.state-chip.st-e {
+  --chip-bg: var(--st-e-bg);
+  --chip-text: var(--st-e-text);
+  --chip-border: var(--st-e-border);
+}
+
+.state-chip.st-o {
+  --chip-bg: var(--st-o-bg);
+  --chip-text: var(--st-o-text);
+  --chip-border: var(--st-o-border);
+}
+
+.state-chip.st-r {
+  --chip-bg: var(--st-r-bg);
+  --chip-text: var(--st-r-text);
+  --chip-border: var(--st-r-border);
+}
+
+.state-chip.st-n {
+  --chip-bg: transparent;
+  --chip-text: var(--text-3);
+  border-style: dotted;
+}
+
+/* 在有底色的信封裡，狀態標籤用白底凸顯 */
+.env.st-h > .env-head .state-chip,
+.env.st-o > .env-head .state-chip,
+.env.st-e > .env-head .state-chip,
+.env.st-r > .env-head .state-chip {
+  background: var(--surface);
+}
+
+.state-legend {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 12px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------- 宿主鏈 ---------- */
+.hoststack {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 6px;
+}
+
+.hoststack li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.45;
+  transition:
+    background 0.3s,
+    border-color 0.3s,
+    color 0.3s;
+}
+
+.hoststack.is-tall li {
+  padding: 9px 10px;
+}
+
+.hoststack li:first-child {
+  border-bottom-width: 3px;
+}
+
+.hoststack li.is-active {
+  background: var(--st-o-bg);
+  border-color: var(--st-o-border);
+  color: var(--st-o-text);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--st-o-border);
+}
+
+.hs-index {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.hs-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.hs-here {
+  flex: none;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--packet);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.8;
+  white-space: nowrap;
+}

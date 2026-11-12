@@ -1,0 +1,252 @@
+/* 色彩與字體 token；深色模式在下方重新定義一次 */
+:root {
+  color-scheme: light;
+  --font-sans: system-ui, -apple-system, 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'PingFang TC', monospace;
+
+  --bg: #f6f5f0;
+  --surface: #ffffff;
+  --surface-2: #f1efe8;
+  --surface-3: #e5e3da;
+  --text: #1f1e1d;
+  --text-2: #55544f;
+  --text-3: #7f7e78;
+  --border: rgba(31, 30, 29, 0.1);
+  --border-strong: rgba(31, 30, 29, 0.22);
+  --focus: #2f6fd6;
+  --shadow: 0 1px 2px rgba(31, 30, 29, 0.05), 0 4px 16px rgba(31, 30, 29, 0.05);
+  --shadow-lg: 0 12px 48px rgba(31, 30, 29, 0.2);
+
+  --accent: #2563c9;
+  --accent-hover: #1d52a8;
+  --accent-text: #ffffff;
+
+  /* 地圖四個區域 */
+  --path-bg: #eaf2fd;
+  --path-border: #b2cdf0;
+  --path-text: #123f75;
+  --path-chip: #ffffff;
+  --path-strong: #2f6fd6;
+  --side-bg: #f1f0eb;
+  --side-border: #d8d5cb;
+  --side-text: #3d3c38;
+  --side-chip: #ffffff;
+  --side-strong: #77746b;
+  --cross-bg: #f2eefd;
+  --cross-border: #cbbdf3;
+  --cross-text: #3b2a85;
+  --cross-chip: #ffffff;
+  --cross-strong: #7357d6;
+  --know-bg: #fdf6dc;
+  --know-border: #ebd486;
+  --know-text: #5a4504;
+  --know-chip: #fffdf5;
+  --know-strong: #b98f0c;
+
+  /* 封包旅程 */
+  --tls: #e08a1e;
+  --tls-text: #95560a;
+  --tls-band: rgba(239, 159, 39, 0.2);
+  --plain: #8c8a83;
+  --dns: #8c8a83;
+  --db: #6f6d66;
+  --packet: #d4532a;
+  --packet-halo: rgba(216, 90, 48, 0.24);
+  --node-fill: #f3f1ea;
+  --node-stroke: #5f5e5a;
+  --node-inner: #e2dfd5;
+  --node-text: #3d3c38;
+  --node-led: #9a988f;
+  --node-active-fill: #fde8de;
+  --node-active-stroke: #c2491f;
+  --node-active-inner: #f8cbb6;
+  --node-active-led: #d4532a;
+  --zone-home: rgba(95, 94, 90, 0.04);
+  --zone-cloud: rgba(47, 111, 214, 0.035);
+  --zone-subnet: rgba(47, 111, 214, 0.05);
+  --zone-stroke: #aeaca4;
+  --zone-cloud-stroke: #94b5e6;
+
+  /* 封包每一層的狀態 */
+  --st-e-bg: #fbf0dc;
+  --st-e-text: #6b3d06;
+  --st-e-border: #e5b56b;
+  --st-o-bg: #e5f0fc;
+  --st-o-text: #0c447c;
+  --st-o-border: #5b9be3;
+  --st-r-bg: #efe9fc;
+  --st-r-text: #46298d;
+  --st-r-border: #9a7fe0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #161615;
+    --surface: #201f1e;
+    --surface-2: #292827;
+    --surface-3: #3a3936;
+    --text: #edece7;
+    --text-2: #bab8af;
+    --text-3: #8f8e87;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.22);
+    --focus: #7fb0f5;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.55);
+    --accent: #6ea6ee;
+    --accent-hover: #8bb9f2;
+    --accent-text: #0b1a30;
+    --path-bg: #142235;
+    --path-border: #2e5487;
+    --path-text: #c4dcf8;
+    --path-chip: #1b2d45;
+    --path-strong: #6ea6ee;
+    --side-bg: #23221f;
+    --side-border: #45433e;
+    --side-text: #d6d4cb;
+    --side-chip: #2c2b28;
+    --side-strong: #a9a69c;
+    --cross-bg: #1f1a33;
+    --cross-border: #4f428a;
+    --cross-text: #d9d0fa;
+    --cross-chip: #2a2345;
+    --cross-strong: #a08cf0;
+    --know-bg: #29230f;
+    --know-border: #6e5b1d;
+    --know-text: #f3df99;
+    --know-chip: #352d15;
+    --know-strong: #e0b83a;
+    --tls: #f2a541;
+    --tls-text: #f6bd6a;
+    --tls-band: rgba(242, 165, 65, 0.2);
+    --plain: #9a988f;
+    --dns: #9a988f;
+    --db: #aeaca4;
+    --packet: #f2815a;
+    --packet-halo: rgba(242, 129, 90, 0.3);
+    --node-fill: #2f2e2b;
+    --node-stroke: #b4b2a9;
+    --node-inner: #3f3e3a;
+    --node-text: #e0ded6;
+    --node-led: #8b8a84;
+    --node-active-fill: #4f2416;
+    --node-active-stroke: #f2997a;
+    --node-active-inner: #6e321e;
+    --node-active-led: #f2815a;
+    --zone-home: rgba(255, 255, 255, 0.025);
+    --zone-cloud: rgba(110, 166, 238, 0.045);
+    --zone-subnet: rgba(110, 166, 238, 0.06);
+    --zone-stroke: #5d5b55;
+    --zone-cloud-stroke: #3f6aa6;
+    --st-e-bg: #3e2c0f;
+    --st-e-text: #f8c978;
+    --st-e-border: #8c6420;
+    --st-o-bg: #0f2c4d;
+    --st-o-text: #b8d6f7;
+    --st-o-border: #3d7cc9;
+    --st-r-bg: #2a2150;
+    --st-r-text: #d6cbfa;
+    --st-r-border: #7660c9;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #161615;
+  --surface: #201f1e;
+  --surface-2: #292827;
+  --surface-3: #3a3936;
+  --text: #edece7;
+  --text-2: #bab8af;
+  --text-3: #8f8e87;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --focus: #7fb0f5;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.55);
+  --accent: #6ea6ee;
+  --accent-hover: #8bb9f2;
+  --accent-text: #0b1a30;
+  --path-bg: #142235;
+  --path-border: #2e5487;
+  --path-text: #c4dcf8;
+  --path-chip: #1b2d45;
+  --path-strong: #6ea6ee;
+  --side-bg: #23221f;
+  --side-border: #45433e;
+  --side-text: #d6d4cb;
+  --side-chip: #2c2b28;
+  --side-strong: #a9a69c;
+  --cross-bg: #1f1a33;
+  --cross-border: #4f428a;
+  --cross-text: #d9d0fa;
+  --cross-chip: #2a2345;
+  --cross-strong: #a08cf0;
+  --know-bg: #29230f;
+  --know-border: #6e5b1d;
+  --know-text: #f3df99;
+  --know-chip: #352d15;
+  --know-strong: #e0b83a;
+  --tls: #f2a541;
+  --tls-text: #f6bd6a;
+  --tls-band: rgba(242, 165, 65, 0.2);
+  --plain: #9a988f;
+  --dns: #9a988f;
+  --db: #aeaca4;
+  --packet: #f2815a;
+  --packet-halo: rgba(242, 129, 90, 0.3);
+  --node-fill: #2f2e2b;
+  --node-stroke: #b4b2a9;
+  --node-inner: #3f3e3a;
+  --node-text: #e0ded6;
+  --node-led: #8b8a84;
+  --node-active-fill: #4f2416;
+  --node-active-stroke: #f2997a;
+  --node-active-inner: #6e321e;
+  --node-active-led: #f2815a;
+  --zone-home: rgba(255, 255, 255, 0.025);
+  --zone-cloud: rgba(110, 166, 238, 0.045);
+  --zone-subnet: rgba(110, 166, 238, 0.06);
+  --zone-stroke: #5d5b55;
+  --zone-cloud-stroke: #3f6aa6;
+  --st-e-bg: #3e2c0f;
+  --st-e-text: #f8c978;
+  --st-e-border: #8c6420;
+  --st-o-bg: #0f2c4d;
+  --st-o-text: #b8d6f7;
+  --st-o-border: #3d7cc9;
+  --st-r-bg: #2a2150;
+  --st-r-text: #d6cbfa;
+  --st-r-border: #7660c9;
+}
+
+/* 區域色彩代理：元件只用 --z-* */
+.zone-path {
+  --z-bg: var(--path-bg);
+  --z-border: var(--path-border);
+  --z-text: var(--path-text);
+  --z-chip: var(--path-chip);
+  --z-strong: var(--path-strong);
+}
+.zone-side {
+  --z-bg: var(--side-bg);
+  --z-border: var(--side-border);
+  --z-text: var(--side-text);
+  --z-chip: var(--side-chip);
+  --z-strong: var(--side-strong);
+}
+.zone-cross {
+  --z-bg: var(--cross-bg);
+  --z-border: var(--cross-border);
+  --z-text: var(--cross-text);
+  --z-chip: var(--cross-chip);
+  --z-strong: var(--cross-strong);
+}
+.zone-knowledge {
+  --z-bg: var(--know-bg);
+  --z-border: var(--know-border);
+  --z-text: var(--know-text);
+  --z-chip: var(--know-chip);
+  --z-strong: var(--know-strong);
+}

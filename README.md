@@ -1,6 +1,12 @@
-# 計算機科學、網路世界 Road Map
+# CS & Network Roadmap · 計算機科學、網路世界 Road Map
 
-互動式教學網頁：看一個 HTTPS 請求怎麼從你的電腦走到資料庫、再走回來，以及路上每一層的知識點。
+**CS & Network Roadmap** is an interactive guide that follows one HTTPS request from the browser to the database. The Road Map lays out 183 topics along the request path from the outside in (client, network and traffic entry, runtime, application, data and messaging), plus cross-cutting concerns such as security, delivery and troubleshooting. The Packet Journey animates two scenarios, an API request through Cloudflare, ALB, ECS Fargate and RDS, and an OIDC login with PKCE. At each step you can see what happens to the five packet layers, where TLS terminates, who owns each machine, and what error you would get if that step failed. The content is distilled from my own notes, and the cloud scenario is modeled on the production setup of my project Global Liquidity Risk Radar.
+
+**計算機科學、網路世界 Road Map** 是一個互動式教學網頁，跟著一個 HTTPS 請求從瀏覽器走到資料庫。世界地圖把 183 個知識點依請求路徑由外而內排列：用戶端、網路與流量入口、執行環境、應用程式、資料與訊息服務，另外整理資安、交付與維運、故障排查等每一層都會碰到的主題。封包旅程用動畫走兩個情境：一個經過 Cloudflare、ALB、ECS Fargate、RDS 的 API 請求，以及一次 OIDC + PKCE 登入。每一站都看得到封包五層的變化、TLS 在哪裡終止、機器屬於誰，以及這一站壞掉會看到什麼錯誤。內容整理自我的個人筆記，雲端情境以我的專案 Global Liquidity Risk Radar 上線時的架構為原型。
+
+線上使用 Live：<https://zhang-renwen.github.io/cs-network-roadmap/>
+
+## 功能
 
 - **世界地圖**：筆記的全部知識點，依「請求路徑（由外而內，右欄是整條路徑共用的 Port、通訊協定、IP 與路由、宿主鏈）→ 橫切關注（資安、交付與維運、故障地圖）→ 供應商與知識」排列；點任何知識點看說明、宿主、相關工具、延伸閱讀，以及它出現在封包旅程的哪一站。
 - **封包旅程**：兩個情境的動畫路徑，頁首可以切換

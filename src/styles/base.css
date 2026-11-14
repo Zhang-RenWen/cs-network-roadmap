@@ -103,11 +103,18 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   font-weight: 700;
   font-size: 15px;
   color: var(--text);
   text-decoration: none;
   white-space: nowrap;
+}
+
+/* 名稱較長：空間不夠時以刪節號收尾，不把右側按鈕擠出畫面 */
+.brand span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .brand-mark {
@@ -189,8 +196,9 @@ button {
   background: color-mix(in srgb, var(--accent) 16%, var(--surface));
 }
 
+/* 用 .btn.fit-toggle 提高權重：.btn 定義在後面，同權重會蓋掉這裡的 display: none */
 @media (max-width: 720px) {
-  .fit-toggle {
+  .btn.fit-toggle {
     display: none;
   }
 }

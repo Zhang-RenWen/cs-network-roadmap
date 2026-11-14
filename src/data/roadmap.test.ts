@@ -4,7 +4,7 @@ import type { Zone } from '../types'
 import { groups } from './roadmap'
 
 /**
- * 個人筆記「計算機、網路世界 Road Map」的 12 個分類頁，以及它在地圖上對應的分類 id 與區域。
+ * 個人筆記「計算機科學、網路世界 Road Map」的 12 個分類頁，以及它在地圖上對應的分類 id 與區域。
  * 筆記分成三區：請求路徑（由外而內）、橫切關注、供應商與知識。
  */
 const NOTE_CATEGORIES: [name: string, id: string, zone: Zone][] = [

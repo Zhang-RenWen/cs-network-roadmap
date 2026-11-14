@@ -1,12 +1,12 @@
 import type { Group } from '../types'
 
 /**
- * 計算機、網路世界 Road Map
+ * 計算機科學、網路世界 Road Map
  * 主軸：一個請求從使用者走到資料的路徑，由外而內排列；
  * 之後是每層都會碰到的「橫切關注」，最後是不屬於架構的知識與工具。
  * 命名規則：中文概念 English（括號內只放綁定的工具 / 平台）。
  */
-export const ROADMAP_TITLE = '計算機、網路世界 Road Map'
+export const ROADMAP_TITLE = '計算機科學、網路世界 Road Map'
 export const ROADMAP_SUBTITLE = '一個請求由外而內穿過每一層'
 
 export const groups: Group[] = [

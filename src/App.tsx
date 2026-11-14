@@ -29,7 +29,7 @@ export default function App() {
         )}
       </main>
       <footer className="app-footer">
-        內容整理自個人筆記「計算機、網路世界 Road Map」。路徑中的設定（SSL 模式、內網明文等）為典型設定，實際依環境而定。
+        內容整理自同名的個人筆記。路徑中的設定（SSL 模式、內網明文等）為典型設定，實際依環境而定。
       </footer>
     </div>
   )

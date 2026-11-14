@@ -25,7 +25,7 @@ export function AppHeader({ view, theme, fit }: Props) {
             <rect x="19" y="18" width="11" height="8" rx="1.5" />
             <path d="M19.5 18.8l5 3.6 5-3.6" />
           </svg>
-          <span>網路世界地圖</span>
+          <span>計算機科學、網路世界 Road Map</span>
         </a>
 
         <nav className="tabs" aria-label="主要頁面">

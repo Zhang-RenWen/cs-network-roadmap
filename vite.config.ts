@@ -11,5 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // 世界地圖的測試會渲染全部知識點，CI 機器較慢時可能超過預設的 5 秒
+    testTimeout: 15000,
   },
 })

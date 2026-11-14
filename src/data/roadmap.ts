@@ -165,8 +165,8 @@ export const groups: Group[] = [
             ],
             details: [
               '瀏覽器驗證憑證四件事：信任鏈（伺服器憑證 → 中繼 CA → 根 CA）、網域相符（SAN）、在有效期限內、未被撤銷。任何一項失敗就顯示「你的連線不是私人連線」。',
-              '握手用非對稱加密交換金鑰，之後的資料改用對稱加密（AES-GCM、ChaCha20-Poly1305），快很多。',
-              'TLS 1.3 強制前向保密：每條連線用臨時金鑰，就算日後伺服器私鑰外洩，過去錄下的流量也解不開。',
+              '握手用非對稱密碼學（ECDHE 金鑰協商 + 憑證簽章）讓雙方算出同一把金鑰，金鑰本身不在網路上傳；之後的資料改用對稱加密（AES-GCM、ChaCha20-Poly1305），快很多。',
+              'TLS 1.3 拿掉了 RSA 金鑰交換，完整握手一定用 (EC)DHE 臨時金鑰：就算日後伺服器私鑰外洩，過去錄下的流量也解不開（前向保密）。',
               '前端相關：HSTS 讓瀏覽器直接走 HTTPS；HTTPS 頁面載入 HTTP 資源（Mixed Content）會被擋；preconnect 可以提早做 DNS + TCP + TLS。',
             ],
             related: ['tls', 'tls-termination', 'tcp', 'quic', 'transport-perf'],
@@ -249,7 +249,7 @@ export const groups: Group[] = [
             id: 'load-balancer',
             title: '負載平衡 Load Balancer',
             summary:
-              '把流量分給多台後端並做健康檢查；L4 只看 IP / Port，L7 看得懂 HTTP，可依路徑分流、做 TLS 終止。',
+              '把流量分給多台後端並做健康檢查；L4 只看 IP / Port，L7 看得懂 HTTP、可依路徑分流。兩種都能做 TLS 終止（NLB 也有 TLS listener），但只有 L7 看得到 HTTP 內容。',
             host: '雲端代管（ALB、NLB）或主機上的軟體（HAProxy、Nginx）；機房常見 F5',
             tags: ['L4 / L7', 'ALB', 'NLB', 'HAProxy', 'F5', 'Health Check'],
             related: ['reverse-proxy', 'tls-termination'],
@@ -404,7 +404,7 @@ export const groups: Group[] = [
           {
             id: 'serverless',
             title: '無伺服器 Serverless',
-            summary: '只上傳函式，平台在請求進來時才執行、依次數計費；看不到底下的主機與作業系統。',
+            summary: '只上傳函式，平台在請求進來時才執行，依請求次數與執行時間計費；看不到底下的主機與作業系統。',
             host: '雲端供應商的執行平台（AWS Lambda、Cloudflare Workers）',
             tags: ['AWS Lambda', 'Cloudflare Workers'],
             related: ['as-platform', 'host-serverless'],
@@ -436,7 +436,7 @@ export const groups: Group[] = [
             id: 'mainframe',
             title: 'Mainframe／AS400 + COBOL',
             summary:
-              '銀行核心系統常見的大型主機：硬體 + 作業系統綁成整套平台（IBM Z 跑 z/OS；AS400 即 IBM i），程式多為 COBOL，著重交易量、穩定與相容。',
+              '銀行核心系統常見的大型主機：硬體 + 作業系統綁成整套平台（IBM Z 跑 z/OS；AS/400 的後繼是 IBM Power 伺服器上的 IBM i），程式多為 COBOL、RPG，著重交易量、穩定與相容。',
             host: '硬體 + 作業系統綁在一起的整套平台，多半放在公司自有機房',
             tags: ['z/OS', 'IBM i', 'COBOL', 'CICS', 'DB2', '批次作業'],
             related: ['ingress-owners', 'database'],
@@ -736,7 +736,7 @@ export const groups: Group[] = [
             tags: ['PostgreSQL 5432', 'MySQL 3306', 'MongoDB 27017', 'RDS', 'DB2'],
             details: [
               '各資料庫有自己的 TCP 協定；JDBC / ODBC 是程式端的 API，不是網路協定。',
-              '程式透過連線池連資料庫；RDS 支援 TLS，但不一定有開。',
+              '程式透過連線池連資料庫。RDS for PostgreSQL 15 起預設強制 TLS（rds.force_ssl=1）；驅動預設的 sslmode=prefer 會加密但不驗證憑證，要確認對方身分用 verify-full。',
             ],
             related: ['port-postgres', 'port-mysql', 'port-mongo'],
           },
@@ -879,7 +879,7 @@ export const groups: Group[] = [
                   ['Cloudflare → CloudFront / ALB', '看 SSL 模式', 'Flexible 是 HTTP（不安全）；Full / Full (strict) 是 HTTPS'],
                   ['CloudFront → ALB', '看 origin 設定', '可以設成 HTTPS only'],
                   ['ALB → ECS 容器', '常常是 HTTP', 'ALB 解密後，在 VPC 內網用明文傳給程式'],
-                  ['程式 → 資料庫', '看設定', 'RDS 支援 TLS，但不一定有開'],
+                  ['程式 → 資料庫', '看版本與設定', 'RDS for PostgreSQL 15 起預設強制 TLS；舊版本或關掉 rds.force_ssl 時可能是明文'],
                 ],
               },
             ],
@@ -978,7 +978,7 @@ export const groups: Group[] = [
         title: '請求 / 回應',
         topics: [
           { id: 'http11', title: 'HTTP/1.1', summary: '一問一答；一條連線同時只處理一個請求。', host: '跑在 TCP 上', tags: ['網頁', 'API'] },
-          { id: 'http2', title: 'HTTP/2', summary: '一條連線多個請求並行（multiplexing）、Header 壓縮。', host: '跑在 TCP + TLS 上', tags: ['multiplexing', 'gRPC 底層'] },
+          { id: 'http2', title: 'HTTP/2', summary: '一條連線多個請求並行（multiplexing）、Header 壓縮。', host: '跑在 TCP 上（瀏覽器一律搭配 TLS；服務之間可用明文 h2c）', tags: ['multiplexing', 'gRPC 底層'] },
           { id: 'http3', title: 'HTTP/3', summary: '改走 QUIC，解決 TCP 掉一個封包整排卡住的問題，手機弱網更穩。', host: '跑在 QUIC（UDP）上', tags: ['CDN', 'Cloudflare'] },
           { id: 'https', title: 'HTTPS', summary: '就是 HTTP + TLS，不是另一種協定。', host: 'HTTP + TLS', tags: ['443'], related: ['tls-termination'] },
           { id: 'rest', title: 'REST', summary: '不是協定而是風格：URI 表示資源、Method 表示操作；最常見的 Web API。', host: '跑在 HTTP 上', tags: ['GET / POST / PUT / DELETE'] },
@@ -993,7 +993,7 @@ export const groups: Group[] = [
           { id: 'polling', title: 'Polling（Short / Long）', summary: 'Client 一直問「有新資料嗎」；Long Polling 是 Server 等到有資料才回應。最簡單的即時效果。', host: '跑在 HTTP 上' },
           { id: 'sse', title: 'SSE', summary: 'Server-Sent Events：單向，Server 持續推給 Client，會自動重連；適合通知、進度條、AI 逐字輸出。', host: '跑在 HTTP 上' },
           { id: 'websocket', title: 'WebSocket', summary: 'HTTP 握手後升級成長連線：雙向、低延遲；加密版是 WSS。聊天室、即時報價、Job 進度監聽。', host: 'HTTP 握手後升級（TCP）', tags: ['WSS', 'Upgrade'] },
-          { id: 'webrtc', title: 'WebRTC', summary: '瀏覽器之間點對點直連，需要 Signaling 伺服器先幫忙對上；視訊會議、螢幕分享。', host: '以 UDP 為主', tags: ['P2P', 'Signaling', 'STUN / TURN'] },
+          { id: 'webrtc', title: 'WebRTC', summary: '瀏覽器之間點對點直連，需要 Signaling 伺服器先幫忙對上；視訊通話、螢幕分享。多人會議通常改由 SFU 伺服器轉送媒體。', host: '以 UDP 為主', tags: ['P2P', 'Signaling', 'STUN / TURN'] },
         ],
       },
       {
@@ -1018,8 +1018,8 @@ export const groups: Group[] = [
           { id: 'ftp', title: 'FTP / FTPS', summary: '傳統檔案傳輸（21）；FTPS 是加 TLS 的版本。', tags: ['21'] },
           { id: 'smb', title: 'SMB', summary: 'Windows 網路芳鄰、NAS 共用資料夾（445）。', tags: ['445'] },
           { id: 'smtp', title: 'SMTP', summary: '寄信（25 / 587）；驗證信、忘記密碼信都用它。', tags: ['25 / 587'] },
-          { id: 'imap', title: 'IMAP', summary: '收信，信件留在伺服器（993）。', tags: ['993'] },
-          { id: 'pop3', title: 'POP3', summary: '收信，下載到本機（995）。', tags: ['995'] },
+          { id: 'imap', title: 'IMAP', summary: '收信，信件留在伺服器（143；加密版 IMAPS 是 993）。', tags: ['143 / 993'] },
+          { id: 'pop3', title: 'POP3', summary: '收信，下載到本機（110；加密版 POP3S 是 995）。', tags: ['110 / 995'] },
         ],
       },
       {
@@ -1327,7 +1327,7 @@ export const groups: Group[] = [
           {
             id: 'ts-503',
             title: '503 Service Unavailable',
-            summary: '多半是沒有可用的上游、限流或維護中：代理找不到健康的後端可以轉。',
+            summary: '多半是沒有可用的上游、限流或維護中：例如 Target Group 裡沒有註冊任何 target，或後端被限流擋下。',
             details: ['先查：LB 健康的 target 數量、Auto Scaling、rate limit。'],
             related: ['load-balancer', 'api-gateway'],
           },

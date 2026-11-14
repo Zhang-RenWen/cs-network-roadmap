@@ -69,7 +69,7 @@ Vite 設定 `base: './'` 加上 hash 路由，部署在任何子路徑都能運�
 
 ## 內容說明
 
-- 路徑中的設定（Cloudflare SSL 模式 Full (strict)、ALB → 容器走明文、RDS 是否開 TLS）是**典型設定，實際依環境而定**，畫面上都有標示。
+- 路徑中的設定（Cloudflare SSL 模式 Full (strict)、ALB → 容器走明文、RDS for PostgreSQL 15 起預設強制 TLS）是**典型設定，實際依環境而定**，畫面上都有標示。HTTP 一律畫成 HTTP/1.1 的文字格式，瀏覽器 ↔ Cloudflare 實際多半是 HTTP/2 或 HTTP/3。
 
 ## 第二階段（規劃中）
 

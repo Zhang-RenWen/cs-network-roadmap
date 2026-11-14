@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react'
 import { AUTOPLAY_DELAY } from '../../config'
+import { scenarioParam, scenarios } from '../../data/scenarios'
+import { routeToHash } from '../../hooks/useHashRoute'
 import { useFitZoom } from '../../hooks/useFitZoom'
 import type { Navigate } from '../../hooks/useHashRoute'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
@@ -31,8 +33,12 @@ export function JourneyView({ scenario, stepParam, navigate, fit = false }: Prop
   const { ref: fitRef, zoom } = useFitZoom<HTMLDivElement>(fitActive)
 
   const go = useCallback(
-    (i: number) => navigate({ view: 'journey', step: String(clampStep(i, total) + 1) }, { replace: true }),
-    [navigate, total],
+    (i: number) =>
+      navigate(
+        { view: 'journey', scenario: scenarioParam(scenario), step: String(clampStep(i, total) + 1) },
+        { replace: true },
+      ),
+    [navigate, scenario, total],
   )
 
   const togglePlay = useCallback(() => {
@@ -87,6 +93,20 @@ export function JourneyView({ scenario, stepParam, navigate, fit = false }: Prop
   const head = (
     <header className="page-head">
       <p className="eyebrow">封包旅程 Packet Journey</p>
+      {scenarios.length > 1 && (
+        <nav className="scenario-tabs" aria-label="情境">
+          {scenarios.map((s) => (
+            <a
+              key={s.id}
+              href={routeToHash({ view: 'journey', scenario: scenarioParam(s) })}
+              className={s.id === scenario.id ? 'is-active' : undefined}
+              aria-current={s.id === scenario.id ? 'page' : undefined}
+            >
+              {s.tab}
+            </a>
+          ))}
+        </nav>
+      )}
       <h1>{scenario.title}</h1>
       <p className="page-sub">{scenario.subtitle}</p>
       <p className="disclaimer">{scenario.disclaimer}</p>

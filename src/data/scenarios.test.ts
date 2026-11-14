@@ -85,6 +85,20 @@ describe.each(scenarios.map((s) => [s.id, s] as const))('情境 %s 資料完整�
     }
   })
 
+  it('「這一站壞掉會怎樣」有症狀與說明，連到存在的知識點', () => {
+    const withFailure = scenario.steps.filter((s) => s.failure)
+    expect(withFailure.length).toBeGreaterThan(scenario.steps.length / 2)
+    for (const step of withFailure) {
+      expect(step.failure!.symptom.trim(), step.id).not.toBe('')
+      expect(step.failure!.detail.trim(), step.id).not.toBe('')
+      if (step.failure!.topic) expect(getTopic(step.failure!.topic), `${step.id} → ${step.failure!.topic}`).toBeDefined()
+    }
+  })
+
+  it('情境有切換列用的短名稱', () => {
+    expect(scenario.tab.trim()).not.toBe('')
+  })
+
   it.each(['wide', 'narrow'] as const)('%s 版面有每台機器的位置，且都在畫布內', (key) => {
     const layout = scenario.layouts[key]
     for (const id of nodeIds) {

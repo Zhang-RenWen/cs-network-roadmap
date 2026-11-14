@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { scenarios } from '../../data/scenarios'
 import { getTopic, stepRefsByTopic, type TopicEntry } from '../../lib/roadmapIndex'
 import { Icon } from '../Icon'
 
@@ -6,8 +7,10 @@ interface Props {
   entry: TopicEntry
   onClose: () => void
   onOpenTopic: (id: string) => void
-  onOpenStep: (index: number) => void
+  onOpenStep: (scenarioId: string, index: number) => void
 }
+
+const scenarioTab = new Map(scenarios.map((s) => [s.id, s.tab]))
 
 export function TopicDetail({ entry, onClose, onOpenTopic, onOpenStep }: Props) {
   const { topic, group, section } = entry
@@ -132,11 +135,14 @@ export function TopicDetail({ entry, onClose, onOpenTopic, onOpenStep }: Props) 
             <ul className="step-links">
               {steps.map((s) => (
                 <li key={`${s.scenarioId}-${s.index}`}>
-                  <button type="button" onClick={() => onOpenStep(s.index)}>
+                  <button type="button" onClick={() => onOpenStep(s.scenarioId, s.index)}>
                     <span className="step-no">{s.index + 1}</span>
                     <span>
                       {s.title}
-                      <small>{s.nodeLabel}</small>
+                      <small>
+                        {scenarios.length > 1 && <>{scenarioTab.get(s.scenarioId)} · </>}
+                        {s.nodeLabel}
+                      </small>
                     </span>
                   </button>
                 </li>

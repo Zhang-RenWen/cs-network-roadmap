@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { JourneyView } from './components/journey/JourneyView'
 import { RoadMapView } from './components/map/RoadMapView'
-import { defaultScenario } from './data/scenarios'
+import { getScenario } from './data/scenarios'
 import { useFitPreference } from './hooks/useFitPreference'
 import { useHashRoute } from './hooks/useHashRoute'
 import { useTheme } from './hooks/useTheme'
@@ -23,7 +23,13 @@ export default function App() {
       <AppHeader view={route.view} theme={theme} fit={fit} />
       <main className="app-main">
         {route.view === 'journey' ? (
-          <JourneyView scenario={defaultScenario} stepParam={route.step} navigate={navigate} fit={fit.enabled} />
+          <JourneyView
+            key={getScenario(route.scenario).id}
+            scenario={getScenario(route.scenario)}
+            stepParam={route.step}
+            navigate={navigate}
+            fit={fit.enabled}
+          />
         ) : (
           <RoadMapView topicId={route.topicId} navigate={navigate} />
         )}

@@ -2,25 +2,35 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react'
 
 /**
  * Hash 路由（GitHub Pages 不需要額外設定）：
- *   #/map            世界地圖
- *   #/map/<topicId>  世界地圖 + 打開某個知識點
- *   #/journey/<n>    封包旅程第 n 站（1-based）
+ *   #/map                      世界地圖
+ *   #/map/<topicId>            世界地圖 + 打開某個知識點
+ *   #/journey/<n>              預設情境的封包旅程第 n 站（1-based）
+ *   #/journey/<scenarioId>/<n> 其他情境的第 n 站
  */
-export type Route = { view: 'map'; topicId?: string } | { view: 'journey'; step?: string }
+export type Route = { view: 'map'; topicId?: string } | { view: 'journey'; scenario?: string; step?: string }
 
 export type Navigate = (to: Route, options?: { replace?: boolean }) => void
 
+const isStepNumber = (value: string) => /^\d+$/.test(value)
+
 export function parseHash(hash: string): Route {
-  const [view, param] = hash.replace(/^#\/?/, '').split('/')
-  const value = param ? decodeURIComponent(param) : undefined
-  if (view === 'journey') return { view: 'journey', step: value }
-  if (view === 'map') return { view: 'map', topicId: value }
+  const [view, ...params] = hash.replace(/^#\/?/, '').split('/')
+  const [first, second] = params.filter(Boolean).map(decodeURIComponent)
+  if (view === 'journey') {
+    if (first === undefined) return { view: 'journey' }
+    if (second !== undefined) return { view: 'journey', scenario: first, step: second }
+    return isStepNumber(first) ? { view: 'journey', step: first } : { view: 'journey', scenario: first }
+  }
+  if (view === 'map') return { view: 'map', topicId: first }
   return { view: 'map' }
 }
 
 export function routeToHash(route: Route): string {
-  const param = route.view === 'journey' ? route.step : route.topicId
-  return `#/${route.view}${param ? `/${encodeURIComponent(param)}` : ''}`
+  const params = route.view === 'journey' ? [route.scenario, route.step] : [route.topicId]
+  return `#/${route.view}${params
+    .filter((p): p is string => Boolean(p))
+    .map((p) => `/${encodeURIComponent(p)}`)
+    .join('')}`
 }
 
 const LOCAL_EVENT = 'nwm:navigate'

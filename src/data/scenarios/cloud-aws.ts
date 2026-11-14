@@ -24,6 +24,7 @@ const SERVER_STACK = [
  */
 export const cloudAws: Scenario = {
   id: 'cloud-aws',
+  tab: '情境 A：一個 API 請求',
   title: '情境 A：雲端（AWS 上雲）',
   subtitle: 'Cloudflare → ALB → ECS Fargate（Spring Boot）→ RDS PostgreSQL',
   disclaimer: 'Cloudflare 用 Full (strict)、ALB → 容器走明文是典型設定，實際依環境而定。',
@@ -137,6 +138,11 @@ export const cloudAws: Scenario = {
       layers: 'nnnnh',
       hostLayer: 4,
       topics: ['web-frontend', 'browser', 'http11', 'rest', 'session-jwt'],
+      failure: {
+        symptom: '白畫面，或按了沒反應',
+        detail: '請求根本還沒出門：前端 JS 在送出前就出錯，或載入的是舊版快取的程式。先看 Console 的紅字，再看 Network 分頁有沒有這個請求。',
+        topic: 'ts-blank',
+      },
     },
     {
       id: 'dns-lookup',
@@ -155,6 +161,11 @@ export const cloudAws: Scenario = {
       hostLayer: 1,
       segments: ['laptop-dns'],
       topics: ['dns-cdn', 'dns', 'udp', 'cloudflare', 'ts-dns'],
+      failure: {
+        symptom: 'ERR_NAME_NOT_RESOLVED',
+        detail: '查不到 IP，請求還沒出發就失敗。網域打錯、DNS 紀錄沒設，或剛新增的紀錄被解析器快取成「查無此名」。',
+        topic: 'ts-dns',
+      },
     },
     {
       id: 'handshake',
@@ -170,6 +181,11 @@ export const cloudAws: Scenario = {
       hostLayer: [1, 2],
       segments: ['laptop-router', 'router-internet', 'internet-edge'],
       topics: ['tcp', 'tls-handshake', 'tls', 'https', 'ts-tls'],
+      failure: {
+        symptom: 'NET::ERR_CERT_DATE_INVALID 等憑證錯誤',
+        detail: 'TCP 連得上，但 TLS 握手失敗：憑證過期、網域不符、少了中繼憑證。問題出在第一個終止 TLS 的節點，這裡是 Cloudflare。',
+        topic: 'ts-tls',
+      },
       note: '瀏覽器 ↔ Cloudflare 這段實際上多半是 HTTP/2（甚至 HTTP/3），是二進位格式；本頁為了好讀，HTTP 一律畫成 HTTP/1.1 的文字。Cloudflare 回源、ALB 轉給容器則預設就是 HTTP/1.1。',
     },
     {
@@ -195,6 +211,11 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 1,
       topics: ['routing-table', 'default-gateway', 'ttl-hop'],
+      failure: {
+        symptom: '所有外部網站都逾時，區網內卻連得到',
+        detail: '預設閘道錯了或沒拿到（DHCP 失敗）：封包不知道要交給誰。traceroute 第 1 跳就沒有回應。',
+        topic: 'default-gateway',
+      },
     },
     {
       id: 'router-nat',
@@ -211,6 +232,11 @@ export const cloudAws: Scenario = {
       hostLayer: 2,
       segments: ['laptop-router'],
       topics: ['router-nat', 'default-gateway', 'wan-lan'],
+      failure: {
+        symptom: '所有網站都連不上',
+        detail: '路由器或它的對外線路斷了：通常先看到 DNS 查不到，接著全部逾時。ping 192.168.1.1 通、ping 1.1.1.1 不通，就是斷在路由器之外。',
+        topic: 'ts-timeout',
+      },
     },
     {
       id: 'isp',
@@ -227,6 +253,11 @@ export const cloudAws: Scenario = {
       hostLayer: 1,
       segments: ['router-internet'],
       topics: ['isp', 'routing-table', 'bgp', 'ttl-hop', 'traceroute-hops', 'icmp'],
+      failure: {
+        symptom: '特別慢，或時好時壞',
+        detail: 'ISP 或骨幹某一段壅塞、繞遠路：用 mtr 看從哪一跳開始延遲變大、掉包。只有中間某一跳掉包、後面都正常，通常不是真的掉包。',
+        topic: 'traceroute',
+      },
       note: '跳數只是示意，實際依網路而定。執行 traceroute app.example.com（Windows 是 tracert）可以看到你自己這條路；開了 Cloudflare 代理，traceroute 只會走到 Cloudflare 邊緣。',
     },
     {
@@ -246,6 +277,11 @@ export const cloudAws: Scenario = {
       hostLayer: 2,
       segments: ['internet-edge'],
       topics: ['dns-cdn', 'http-caching', 'waf', 'ddos', 'tls-termination', 'cloudflare'],
+      failure: {
+        symptom: 'Cloudflare 錯誤頁 521 / 522 / 525 / 526',
+        detail: 'Cloudflare 自己沒事，是連不到後面：521 後端拒絕連線、522 連線逾時（常是 Security Group 沒放行 Cloudflare 的 IP）、525 / 526 回源的 TLS 握手或憑證有問題。',
+        topic: 'ts-502',
+      },
       note: '典型設定：若 SSL 模式是 Flexible，Cloudflare 往後這段會變成 HTTP 明文。有些架構在 Cloudflare 與 ALB 之間還會多一層 CloudFront + 全域 WAF，這裡省略，概念相同：再一次 TLS 終止。',
     },
     {
@@ -264,6 +300,11 @@ export const cloudAws: Scenario = {
       hostLayer: 2,
       segments: ['edge-sg'],
       topics: ['vpc', 'firewall', 'security-layers', 'ts-timeout'],
+      failure: {
+        symptom: '連線逾時（經 Cloudflare 時是 522）',
+        detail: 'Security Group 沒放行：封包被默默丟掉、沒有任何回應，所以是逾時而不是「被拒絕」。',
+        topic: 'ts-timeout',
+      },
     },
     {
       id: 'alb',
@@ -282,6 +323,11 @@ export const cloudAws: Scenario = {
       hostLayer: 2,
       segments: ['sg-lb'],
       topics: ['load-balancer', 'reverse-proxy', 'tls-termination', 'aws', 'ts-502'],
+      failure: {
+        symptom: '503 Service Unavailable',
+        detail: 'Target Group 裡沒有健康的後端：容器還沒啟動完、健康檢查路徑設錯，或全部被判定不健康。',
+        topic: 'ts-503',
+      },
       note: 'ALB → 容器走 HTTP 明文是雲端常見的典型設定，實際依環境而定；金融業資安規範常要求內網也加密（TLS re-encryption 或 mTLS）。',
     },
     {
@@ -300,6 +346,11 @@ export const cloudAws: Scenario = {
       hostLayer: 2,
       segments: ['lb-server'],
       topics: ['host-os', 'linux', 'tcp'],
+      failure: {
+        symptom: '502 Bad Gateway（主機回 Connection refused）',
+        detail: '封包到了主機，但沒有程式在聽 8080：服務沒啟動或 Port 設錯，ALB 只好回 502。',
+        topic: 'ts-refused',
+      },
     },
     {
       id: 'container',
@@ -311,6 +362,11 @@ export const cloudAws: Scenario = {
       fields: { l7: 'HTTP 位元組串流 → 容器內聽 :8080 的 java 行程' },
       hostLayer: 3,
       topics: ['container', 'host-container', 'ts-refused'],
+      failure: {
+        symptom: '502 Bad Gateway',
+        detail: '容器一啟動就崩潰、一直重啟，或程式只聽 127.0.0.1（容器外連不進來），ALB 連不到它。',
+        topic: 'ts-502',
+      },
     },
     {
       id: 'tomcat',
@@ -324,6 +380,11 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 5,
       topics: ['tomcat', 'embedded-as', 'authn', 'oidc', 'session-jwt', 'ts-auth'],
+      failure: {
+        symptom: '401 Unauthorized / 403 Forbidden',
+        detail: 'JWT 過期、簽章驗不過或沒帶上 → 401；登入了但角色不夠 → 403。',
+        topic: 'ts-auth',
+      },
     },
     {
       id: 'business',
@@ -337,6 +398,11 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 6,
       topics: ['java', 'host-code', 'iam', 'ts-500'],
+      failure: {
+        symptom: '500 Internal Server Error',
+        detail: '程式拋出沒處理的例外。用 request id 到 App log 找例外堆疊。',
+        topic: 'ts-500',
+      },
     },
     {
       id: 'database',
@@ -356,6 +422,11 @@ export const cloudAws: Scenario = {
       hostLayer: 2,
       segments: ['server-db'],
       topics: ['database', 'port-postgres', 'aws', 'ts-504'],
+      failure: {
+        symptom: '504 Gateway Timeout',
+        detail: '慢查詢或連線池用完，程式等太久，ALB 先放棄（ALB 預設閒置逾時 60 秒）。',
+        topic: 'ts-504',
+      },
       note: 'RDS for PostgreSQL 15 起預設強制 TLS；驅動預設的 sslmode=prefer 會加密但不驗證憑證，要確認連到的是真的 RDS，用 sslmode=verify-full 並裝上 RDS 的 CA。舊版本或關掉 rds.force_ssl 時，這段可能是明文。',
     },
     {
@@ -376,6 +447,11 @@ export const cloudAws: Scenario = {
       segments: ['server-db', 'lb-server', 'sg-lb', 'edge-sg', 'internet-edge', 'router-internet', 'laptop-router'],
       direction: 'back',
       topics: ['tls-termination', 'router-nat', 'web-frontend', 'http-caching'],
+      failure: {
+        symptom: '只有部分使用者看到舊資料或錯誤',
+        detail: 'CDN 或瀏覽器快取了不該快取的回應（例如 API 回應），或某一台主機跑的是不同版本。',
+        topic: 'ts-partial',
+      },
     },
   ],
 

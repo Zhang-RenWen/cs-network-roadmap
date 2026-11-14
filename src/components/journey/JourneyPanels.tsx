@@ -1,6 +1,7 @@
 import { memo, useId } from 'react'
 import { getTopic } from '../../lib/roadmapIndex'
-import type { JourneyNode, Scenario, Step } from '../../types'
+import type { JourneyNode, Scenario, Step, StepFailure } from '../../types'
+import { Icon } from '../Icon'
 import { HostStack } from './HostStack'
 import { PacketLayers } from './PacketLayers'
 
@@ -55,6 +56,31 @@ const StackGhosts = memo(function StackGhosts({ scenario, parts }: Omit<StackPro
   ))
 })
 
+/** 這一站壞掉時會看到什麼，連到故障地圖 */
+function FailureCard({ failure }: { failure: StepFailure }) {
+  const entry = getTopic(failure.topic)
+  return (
+    <div className="step-fail">
+      <p className="step-fail-head">
+        <Icon name="alert" size={14} />
+        這一站壞掉會怎樣
+      </p>
+      <p className="step-fail-symptom">{failure.symptom}</p>
+      <p className="step-fail-detail">
+        {failure.detail}
+        {entry && (
+          <>
+            {' '}
+            <a className="step-fail-link" href={`#/map/${entry.topic.id}`}>
+              {entry.topic.title} →
+            </a>
+          </>
+        )}
+      </p>
+    </div>
+  )
+}
+
 function StepPanel({ step, node, index }: { step: Step; node: JourneyNode; index: number }) {
   const titleId = useId()
   const topics = (step.topics ?? []).map(getTopic).filter((t) => t !== undefined)
@@ -74,6 +100,8 @@ function StepPanel({ step, node, index }: { step: Step; node: JourneyNode; index
           {step.note}
         </p>
       )}
+
+      {step.failure && <FailureCard failure={step.failure} />}
 
       <h3 className="mini-title">宿主是誰、軟體誰維護、你要做什麼</h3>
       <dl className="owner">

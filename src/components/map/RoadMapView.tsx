@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import { groups, ROADMAP_SUBTITLE, ROADMAP_TITLE } from '../../data/roadmap'
+import { getScenario, scenarioParam } from '../../data/scenarios'
 import type { Navigate } from '../../hooks/useHashRoute'
 import { allTopicEntries, getTopic, searchTopics } from '../../lib/roadmapIndex'
 import type { Zone } from '../../types'
@@ -28,7 +29,11 @@ export function RoadMapView({ topicId, navigate }: Props) {
 
   const openTopic = useCallback((id: string) => navigate({ view: 'map', topicId: id }), [navigate])
   const closeTopic = useCallback(() => navigate({ view: 'map' }), [navigate])
-  const openStep = useCallback((index: number) => navigate({ view: 'journey', step: String(index + 1) }), [navigate])
+  const openStep = useCallback(
+    (scenarioId: string, index: number) =>
+      navigate({ view: 'journey', scenario: scenarioParam(getScenario(scenarioId)), step: String(index + 1) }),
+    [navigate],
+  )
 
   // 「/」快速聚焦搜尋
   useEffect(() => {

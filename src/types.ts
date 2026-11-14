@@ -136,6 +136,17 @@ export interface Step {
   topics?: string[]
   /** 「典型設定，實際依環境而定」之類的提醒 */
   note?: string
+  /** 這一站壞掉時，使用者或工程師會看到什麼 */
+  failure?: StepFailure
+}
+
+export interface StepFailure {
+  /** 看到的症狀：錯誤訊息或狀態碼 */
+  symptom: string
+  /** 為什麼會這樣、先查什麼 */
+  detail: string
+  /** 對應 Road Map 的知識點 id（多半是故障地圖） */
+  topic?: string
 }
 
 export type Anchor = 'start' | 'middle' | 'end'
@@ -182,6 +193,8 @@ export interface Layout {
 
 export interface Scenario {
   id: string
+  /** 情境切換列上的短名稱 */
+  tab: string
   title: string
   subtitle: string
   disclaimer: string

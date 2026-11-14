@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { allTopicEntries } from './lib/roadmapIndex'
-import { defaultScenario } from './data/scenarios'
+import { defaultScenario, scenarios } from './data/scenarios'
 
 const total = defaultScenario.steps.length
 
@@ -120,6 +120,46 @@ describe('符合畫面', () => {
     } finally {
       window.matchMedia = original
     }
+  })
+})
+
+describe('情境切換與「這一站壞掉會怎樣」', () => {
+  const login = scenarios.find((s) => s.id === 'login-oidc')!
+
+  it('#/journey/<情境>/<n> 打開其他情境，前後移動時網址保留情境', () => {
+    renderAt('#/journey/login-oidc')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(login.title)
+    expect(counter()).toBe(`1 / ${login.steps.length}`)
+
+    fireEvent.keyDown(window, { key: 'ArrowRight' })
+    expect(window.location.hash).toBe('#/journey/login-oidc/2')
+    expect(screen.getByRole('heading', { level: 2, name: login.steps[1].title })).toBeInTheDocument()
+  })
+
+  it('情境切換列標出目前的情境，預設情境的網址不帶情境 id', () => {
+    renderAt('#/journey/3')
+    const tabs = screen.getByRole('navigation', { name: '情境' })
+    const links = within(tabs).getAllByRole('link')
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['#/journey', '#/journey/login-oidc'])
+    expect(links[0]).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('每一站顯示壞掉時會看到的症狀，並連到故障地圖', () => {
+    const dnsStep = defaultScenario.steps.findIndex((s) => s.id === 'dns-lookup') + 1
+    renderAt(`#/journey/${dnsStep}`)
+    const panel = screen.getByRole('region', { name: defaultScenario.steps[dnsStep - 1].title })
+    const card = within(panel).getByText('這一站壞掉會怎樣').closest('.step-fail') as HTMLElement
+    expect(card).not.toBeNull()
+    expect(within(card).getByText('ERR_NAME_NOT_RESOLVED')).toBeInTheDocument()
+    expect(within(card).getByRole('link', { name: /ERR_NAME_NOT_RESOLVED →/ })).toHaveAttribute('href', '#/map/ts-dns')
+  })
+
+  it('知識點抽屜裡的步驟連結會打開對的情境', async () => {
+    renderAt('#/map/pkce')
+    const dialog = await screen.findByRole('dialog')
+    const authorize = login.steps.findIndex((s) => s.id === 'authorize')
+    fireEvent.click(within(dialog).getByRole('button', { name: new RegExp(login.steps[authorize].title) }))
+    expect(window.location.hash).toBe(`#/journey/login-oidc/${authorize + 1}`)
   })
 })
 

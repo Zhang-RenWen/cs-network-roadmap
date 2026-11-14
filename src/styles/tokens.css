@@ -72,6 +72,11 @@
   --st-r-bg: #efe9fc;
   --st-r-text: #46298d;
   --st-r-border: #9a7fe0;
+
+  /* 這一站壞掉會怎樣 */
+  --fail-bg: #fdecea;
+  --fail-text: #8a1f17;
+  --fail-border: #ef9a92;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -138,6 +143,9 @@
     --st-r-bg: #2a2150;
     --st-r-text: #d6cbfa;
     --st-r-border: #7660c9;
+    --fail-bg: #3a1d1a;
+    --fail-text: #f6b4ab;
+    --fail-border: #8f3a31;
   }
 }
 
@@ -204,6 +212,9 @@
   --st-r-bg: #2a2150;
   --st-r-text: #d6cbfa;
   --st-r-border: #7660c9;
+  --fail-bg: #3a1d1a;
+  --fail-text: #f6b4ab;
+  --fail-border: #8f3a31;
 }
 
 /* 區域色彩代理：元件只用 --z-* */

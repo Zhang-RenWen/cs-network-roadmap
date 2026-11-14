@@ -3,11 +3,14 @@
 互動式教學網頁：看一個 HTTPS 請求怎麼從你的電腦走到資料庫、再走回來，以及路上每一層的知識點。
 
 - **世界地圖**：筆記的全部知識點，依「請求路徑（由外而內，右欄是整條路徑共用的 Port、通訊協定、IP 與路由、宿主鏈）→ 橫切關注（資安、交付與維運、故障地圖）→ 供應商與知識」排列；點任何知識點看說明、宿主、相關工具、延伸閱讀，以及它出現在封包旅程的哪一站。
-- **封包旅程**：16 站的動畫路徑（雲端情境：Cloudflare → ALB → ECS Fargate → RDS）
+- **封包旅程**：兩個情境的動畫路徑，頁首可以切換
+  - 情境 A：一個 API 請求，16 站（Cloudflare → ALB → ECS Fargate → RDS）
+  - 情境 B：登入流程，11 站（OIDC 授權碼 + PKCE：瀏覽器 → 反向代理 → 身分服務 IdP，可再串 Google → 拿到 token → API 驗 JWT → 用 issuer + subject 找使用者）
   - 封包五層（L2 訊框、L3 IP、L4 TCP/UDP、TLS、L7 HTTP）在每一站是「讀取 / 封著不拆 / 加密看不到 / 在這裡拆開 / 在這裡改寫 / 不存在」，用信封層層包覆呈現
   - 每台機器內部的宿主鏈（實體機 → Hypervisor → 作業系統核心 → 容器 → runtime → Application Server → 你的程式）
   - TLS 加密段與內網明文段用不同線條標示（TLS 終止）
   - 每一站的「實體機器屬於誰、軟體誰維護、你要做什麼」
+  - 每一站的「這一站壞掉會怎樣」：會看到的錯誤（例如 Cloudflare 522、503、401），並連到故障地圖
 
 ## 開發
 
@@ -30,7 +33,8 @@ npm run build      # 型別檢查 + 打包到 dist/
 | 自動播放 | `空白鍵` 或「播放」按鈕（走到最後一步自動停） |
 | 跳到某台機器 | 點插圖上的機器（再點一次跳到它的下一站） |
 | 搜尋知識點 | 世界地圖按 `/` |
-| 分享某一站 / 某個知識點 | 網址 `#/journey/7`、`#/map/tls-termination` |
+| 切換情境 | 封包旅程頁首的「情境 A / 情境 B」 |
+| 分享某一站 / 某個知識點 | 網址 `#/journey/7`（情境 A）、`#/journey/login-oidc/3`（其他情境）、`#/map/tls-termination` |
 
 ## 專案結構
 
@@ -39,6 +43,7 @@ src/
   data/
     roadmap.ts               Road Map 全部分類與知識點（資料驅動）
     scenarios/cloud-aws.ts   情境 A：節點、線段、16 個步驟、寬 / 窄兩種版面座標
+    scenarios/login-oidc.ts  情境 B：登入流程（OIDC 授權碼 + PKCE），11 個步驟
     scenarios/index.ts       情境清單（新增情境只要加資料檔）
   components/
     map/                     RoadMapView、GroupCard、TopicDetail（抽屜）
@@ -54,6 +59,8 @@ src/
   `h` 讀取、`s` 封著不拆、`e` 加密看不到、`o` 在這裡拆開、`r` 在這裡改寫、`n` 不存在。
 - `hostLayer` 是宿主鏈中目前所在的層（由下往上的 index，可給陣列）。
 - `topics` 把步驟連到世界地圖的知識點，知識點抽屜會反向列出「在封包旅程中」的步驟。
+- `failure`：這一站壞掉時看到的症狀（`symptom`）、原因與先查什麼（`detail`），`topic` 連到故障地圖的知識點。
+- 情境的 `tab` 是頁首切換列上的短名稱；預設情境（情境 A）的網址不帶情境 id。
 - 分類的 `parent`：Port、通訊協定、宿主鏈這類「整條路徑都會用到」的卡片，掛在所屬的請求路徑分類底下，顯示在地圖右欄。
 - 知識點的 `links`：延伸閱讀，只放公開網站（例如 Modern WEB Dev Notes），測試會擋掉 Notion 連結。
 - 插圖座標分 `wide`（桌面）與 `narrow`（手機直式）兩套，畫面寬度 ≤ 640px 時切換。
@@ -73,9 +80,9 @@ Vite 設定 `base: './'` 加上 hash 路由，部署在任何子路徑都能運�
 
 ## 第二階段（規劃中）
 
-資料結構已支援多情境，新增資料檔放進 `src/data/scenarios/index.ts` 即可：
+新增情境只要加一個資料檔，放進 `src/data/scenarios/index.ts`：
 
-- 情境 B：銀行自有機房 On-Premise（硬體防火牆、F5、Web Server + WebLogic、DB2 / Mainframe、內網加密）
-- 情境 C：家用主機 + Tailscale / Cloudflare Tunnel（由內往外連，不開 Inbound Port）
+- 情境 C：銀行自有機房 On-Premise（硬體防火牆、F5、Web Server + WebLogic、DB2 / Mainframe、內網加密）
+- 情境 D：家用主機 + Tailscale / Cloudflare Tunnel（由內往外連，不開 Inbound Port）
 - 協定切換：WebSocket、MQTT（經 Broker）、DNS 查詢流程
 - Cloudflare SSL 模式 Flexible / Full (strict) 開關，即時看出哪一段變明文

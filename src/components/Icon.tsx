@@ -18,6 +18,7 @@ export type IconName =
   | 'route'
   | 'map'
   | 'fit'
+  | 'alert'
 
 const PATHS: Record<IconName, string> = {
   eye: 'M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
@@ -39,6 +40,7 @@ const PATHS: Record<IconName, string> = {
   route: 'M3.5 13a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z M12.5 6a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z M5 11.5h5a2 2 0 0 0 0-4H6a2 2 0 0 1 0-4h5',
   map: 'M1.5 3.5l4-1.5 5 1.5 4-1.5v10.5l-4 1.5-5-1.5-4 1.5z M5.5 2v10.5 M10.5 3.5V14',
   fit: 'M6 2v4H2 M10 2v4h4 M6 14v-4H2 M10 14v-4h4',
+  alert: 'M8 2L14.5 13.5h-13z M8 6.5v3 M8 11.8v.2',
 }
 
 export function Icon({ name, size = 16, className }: { name: IconName; size?: number; className?: string }) {

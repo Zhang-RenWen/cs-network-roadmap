@@ -49,7 +49,7 @@ export function RoadMapView({ topicId, navigate }: Props) {
   return (
     <div className="roadmap">
       <header className="page-head hero">
-        <p className="eyebrow">Network World Map</p>
+        <p className="eyebrow">cs-network-roadmap</p>
         <h1>{ROADMAP_TITLE}</h1>
         <p className="page-sub">{ROADMAP_SUBTITLE}</p>
         <p className="hero-intro">

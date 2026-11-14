@@ -62,7 +62,7 @@ src/
 
 `.github/workflows/deploy.yml` 會在 push 到 `main` 時跑 lint、測試、打包並部署。第一次使用：
 
-1. 在 GitHub 建立 repo `network-world-map` 並 push。
+1. 在 GitHub 建立 repo `cs-network-roadmap` 並 push。
 2. Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。
 
 Vite 設定 `base: './'` 加上 hash 路由，部署在任何子路徑都能運作，不需要 404 fallback。

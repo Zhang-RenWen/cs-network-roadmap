@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // 相對路徑：部署在 GitHub Pages 的子路徑（/network-world-map/）也能載入資源；路由用 hash，不需要 404 fallback
+  // 相對路徑：部署在 GitHub Pages 的子路徑（/cs-network-roadmap/）也能載入資源；路由用 hash，不需要 404 fallback
   base: './',
   plugins: [react()],
   test: {

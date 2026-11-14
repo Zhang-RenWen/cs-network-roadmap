@@ -14,7 +14,6 @@ interface Props {
 
 const ZONE_LEGEND: { zone: Zone; label: string }[] = [
   { zone: 'path', label: '請求路徑' },
-  { zone: 'side', label: '旁路與共通基礎' },
   { zone: 'cross', label: '橫切關注' },
   { zone: 'knowledge', label: '供應商與知識' },
 ]
@@ -44,7 +43,8 @@ export function RoadMapView({ topicId, navigate }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [entry])
 
-  const pathGroups = byZone('path')
+  const pathGroups = byZone('path').filter((g) => !g.parent)
+  const basicGroups = byZone('path').filter((g) => g.parent)
 
   return (
     <div className="roadmap">
@@ -109,11 +109,11 @@ export function RoadMapView({ topicId, navigate }: Props) {
           ))}
         </section>
 
-        <section className="roadmap-side" aria-labelledby="zone-side">
-          <h2 id="zone-side" className="zone-heading">
-            旁路與共通基礎
+        <section className="roadmap-side" aria-labelledby="zone-basics">
+          <h2 id="zone-basics" className="zone-heading">
+            共通基礎（整條路徑都會用到）
           </h2>
-          {byZone('side').map((g) => (
+          {basicGroups.map((g) => (
             <GroupCard key={g.id} group={g} matches={matches} onOpenTopic={openTopic} />
           ))}
         </section>
@@ -123,7 +123,7 @@ export function RoadMapView({ topicId, navigate }: Props) {
         <h2 id="zone-cross" className="zone-heading">
           橫切關注（每一層都會碰到）
         </h2>
-        <div className="band-grid band-grid--2">
+        <div className="band-grid band-grid--3">
           {byZone('cross').map((g) => (
             <GroupCard key={g.id} group={g} matches={matches} onOpenTopic={openTopic} />
           ))}

@@ -3,7 +3,7 @@
 /* ------------------------------------------------------------------ */
 
 /** 地圖上的四個區域：請求主路徑、側欄共通基礎、橫切關注、供應商與知識 */
-export type Zone = 'path' | 'side' | 'cross' | 'knowledge'
+export type Zone = 'path' | 'cross' | 'knowledge'
 
 export interface InfoTable {
   caption?: string
@@ -23,8 +23,15 @@ export interface Topic {
   tables?: InfoTable[]
   /** 相關知識點 id */
   related?: string[]
+  /** 延伸閱讀（公開網站） */
+  links?: ExternalLink[]
   /** Port 之類的代碼，用等寬字顯示 */
   mono?: boolean
+}
+
+export interface ExternalLink {
+  label: string
+  url: string
 }
 
 export interface TopicSection {
@@ -41,6 +48,8 @@ export interface Group {
   title: string
   summary: string
   host?: string
+  /** 屬於哪一個請求路徑分類（顯示在「共通基礎」欄），例如 Port、通訊協定屬於網路與流量入口 */
+  parent?: string
   sections: TopicSection[]
 }
 

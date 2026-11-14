@@ -21,17 +21,12 @@
   --accent-hover: #1d52a8;
   --accent-text: #ffffff;
 
-  /* 地圖四個區域 */
+  /* 地圖三個區域 */
   --path-bg: #eaf2fd;
   --path-border: #b2cdf0;
   --path-text: #123f75;
   --path-chip: #ffffff;
   --path-strong: #2f6fd6;
-  --side-bg: #f1f0eb;
-  --side-border: #d8d5cb;
-  --side-text: #3d3c38;
-  --side-chip: #ffffff;
-  --side-strong: #77746b;
   --cross-bg: #f2eefd;
   --cross-border: #cbbdf3;
   --cross-text: #3b2a85;
@@ -102,11 +97,6 @@
     --path-text: #c4dcf8;
     --path-chip: #1b2d45;
     --path-strong: #6ea6ee;
-    --side-bg: #23221f;
-    --side-border: #45433e;
-    --side-text: #d6d4cb;
-    --side-chip: #2c2b28;
-    --side-strong: #a9a69c;
     --cross-bg: #1f1a33;
     --cross-border: #4f428a;
     --cross-text: #d9d0fa;
@@ -173,11 +163,6 @@
   --path-text: #c4dcf8;
   --path-chip: #1b2d45;
   --path-strong: #6ea6ee;
-  --side-bg: #23221f;
-  --side-border: #45433e;
-  --side-text: #d6d4cb;
-  --side-chip: #2c2b28;
-  --side-strong: #a9a69c;
   --cross-bg: #1f1a33;
   --cross-border: #4f428a;
   --cross-text: #d9d0fa;
@@ -228,13 +213,6 @@
   --z-text: var(--path-text);
   --z-chip: var(--path-chip);
   --z-strong: var(--path-strong);
-}
-.zone-side {
-  --z-bg: var(--side-bg);
-  --z-border: var(--side-border);
-  --z-text: var(--side-text);
-  --z-chip: var(--side-chip);
-  --z-strong: var(--side-strong);
 }
 .zone-cross {
   --z-bg: var(--cross-bg);

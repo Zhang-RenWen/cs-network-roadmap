@@ -136,7 +136,7 @@ export const cloudAws: Scenario = {
         "前端 React 呼叫 fetch('https://app.example.com/api/…')，瀏覽器組出 HTTP 請求：方法、路徑、Header、Body。這時還只是應用層的一段文字，還沒有任何網路標頭。",
       layers: 'nnnnh',
       hostLayer: 4,
-      topics: ['web-frontend', 'browser', 'http11', 'rest'],
+      topics: ['web-frontend', 'browser', 'http11', 'rest', 'session-jwt'],
     },
     {
       id: 'dns-lookup',
@@ -154,7 +154,7 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 1,
       segments: ['laptop-dns'],
-      topics: ['dns-cdn', 'dns', 'udp', 'cloudflare'],
+      topics: ['dns-cdn', 'dns', 'udp', 'cloudflare', 'ts-dns'],
     },
     {
       id: 'handshake',
@@ -169,7 +169,7 @@ export const cloudAws: Scenario = {
       },
       hostLayer: [1, 2],
       segments: ['laptop-router', 'router-internet', 'internet-edge'],
-      topics: ['tcp', 'tls', 'https'],
+      topics: ['tcp', 'tls-handshake', 'tls', 'https', 'ts-tls'],
     },
     {
       id: 'encapsulate',
@@ -229,7 +229,7 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 2,
       segments: ['internet-edge'],
-      topics: ['dns-cdn', 'waf', 'ddos', 'tls-termination', 'cloudflare'],
+      topics: ['dns-cdn', 'http-caching', 'waf', 'ddos', 'tls-termination', 'cloudflare'],
       note: '典型設定：若 SSL 模式是 Flexible，Cloudflare 往後這段會變成 HTTP 明文。有些架構在 Cloudflare 與 ALB 之間還會多一層 CloudFront + 全域 WAF，這裡省略，概念相同：再一次 TLS 終止。',
     },
     {
@@ -247,7 +247,7 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 2,
       segments: ['edge-sg'],
-      topics: ['vpc', 'firewall', 'security-layers'],
+      topics: ['vpc', 'firewall', 'security-layers', 'ts-timeout'],
     },
     {
       id: 'alb',
@@ -265,7 +265,7 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 2,
       segments: ['sg-lb'],
-      topics: ['load-balancer', 'reverse-proxy', 'tls-termination', 'aws'],
+      topics: ['load-balancer', 'reverse-proxy', 'tls-termination', 'aws', 'ts-502'],
       note: 'ALB → 容器走 HTTP 明文是雲端常見的典型設定，實際依環境而定；金融業資安規範常要求內網也加密（TLS re-encryption 或 mTLS）。',
     },
     {
@@ -294,7 +294,7 @@ export const cloudAws: Scenario = {
       layers: 'nnnns',
       fields: { l7: 'HTTP 位元組串流 → 容器內聽 :8080 的 java 行程' },
       hostLayer: 3,
-      topics: ['container', 'host-container'],
+      topics: ['container', 'host-container', 'ts-refused'],
     },
     {
       id: 'tomcat',
@@ -307,7 +307,7 @@ export const cloudAws: Scenario = {
         l7: 'GET /api/orders/summary\nAuthorization: Bearer eyJ…（驗證 Keycloak 簽的 JWT）\n→ 執行緒池 → DispatcherServlet → Controller',
       },
       hostLayer: 5,
-      topics: ['tomcat', 'embedded-as', 'authn', 'oidc'],
+      topics: ['tomcat', 'embedded-as', 'authn', 'oidc', 'session-jwt', 'ts-auth'],
     },
     {
       id: 'business',
@@ -320,7 +320,7 @@ export const cloudAws: Scenario = {
         l7: '@GetMapping("/api/orders/summary")\n→ OrderService：RBAC 檢查、計算\n→ Repository：開啟交易、查資料庫',
       },
       hostLayer: 6,
-      topics: ['java', 'host-code', 'iam'],
+      topics: ['java', 'host-code', 'iam', 'ts-500'],
     },
     {
       id: 'database',
@@ -339,7 +339,7 @@ export const cloudAws: Scenario = {
       },
       hostLayer: 2,
       segments: ['server-db'],
-      topics: ['database', 'port-postgres', 'aws'],
+      topics: ['database', 'port-postgres', 'aws', 'ts-504'],
       note: 'RDS 支援 TLS，但要在連線設定開啟（例如 sslmode=require）；沒開時這段是明文。',
     },
     {
@@ -359,7 +359,7 @@ export const cloudAws: Scenario = {
       hostLayer: 4,
       segments: ['server-db', 'lb-server', 'sg-lb', 'edge-sg', 'internet-edge', 'router-internet', 'laptop-router'],
       direction: 'back',
-      topics: ['tls-termination', 'router-nat', 'web-frontend'],
+      topics: ['tls-termination', 'router-nat', 'web-frontend', 'http-caching'],
     },
   ],
 

@@ -1,3 +1,4 @@
+import { groups } from '../../data/roadmap'
 import { stepRefsByTopic } from '../../lib/roadmapIndex'
 import type { Group } from '../../types'
 
@@ -12,9 +13,11 @@ export function GroupCard({ group, index, matches, onOpenTopic }: Props) {
   const topicIds = group.sections.flatMap((s) => s.topics.map((t) => t.id))
   const hitCount = matches ? topicIds.filter((id) => matches.has(id)).length : topicIds.length
   const dim = matches !== null && hitCount === 0
+  const parent = group.parent ? groups.find((g) => g.id === group.parent) : undefined
 
   return (
     <article className={`group-card zone-${group.zone}${dim ? ' is-dim' : ''}`} aria-labelledby={`group-${group.id}`}>
+      {parent && <p className="group-parent">屬於「{parent.title}」</p>}
       <header className="group-head">
         {index !== undefined && <span className="group-index">{index}</span>}
         <h3 id={`group-${group.id}`}>{group.title}</h3>

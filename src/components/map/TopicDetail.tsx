@@ -145,6 +145,21 @@ export function TopicDetail({ entry, onClose, onOpenTopic, onOpenStep }: Props) 
           </section>
         )}
 
+        {topic.links && topic.links.length > 0 && (
+          <section className="drawer-section">
+            <h3>延伸閱讀</h3>
+            <ul className="ext-links">
+              {topic.links.map((link) => (
+                <li key={link.url}>
+                  <a href={link.url} target="_blank" rel="noreferrer">
+                    {link.label} <Icon name="external" size={14} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {related.length > 0 && (
           <section className="drawer-section">
             <h3>相關知識點</h3>

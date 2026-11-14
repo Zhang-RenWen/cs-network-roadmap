@@ -203,8 +203,15 @@ export const groups: Group[] = [
             summary:
               '看得懂 HTTP 內容（L7）的防火牆：擋 SQL Injection、XSS、惡意 Bot、異常流量；必須先 TLS 終止，才看得到內容。',
             host: '邊緣供應商代管（Cloudflare WAF；AWS WAF 掛在 CloudFront / ALB 上）',
-            tags: ['OWASP Top 10', 'Rate Limiting', 'Bot 管理', '自訂規則'],
-            related: ['tls-termination', 'firewall', 'security-layers'],
+            tags: ['OWASP Top 10', 'Rate Limiting', 'Bot 管理', '自訂規則', 'Origin 保護'],
+            details: [
+              '防止來源站被繞過：攻擊者查到後端的真實位址，就能跳過 CDN 和 WAF 直接打。後端只放行 CDN 的 IP 範圍，或只接受帶秘密 header（origin verification）的請求。',
+              '驗收要兩條路一起測：經 CDN 打得到；直接打後端被擋（403 或逾時）。',
+              'CDN 的 IP 範圍會變（例如 Cloudflare 公布在 cloudflare.com/ips），重新部署前要重新比對。',
+              'Web ACL 沒有關聯到任何資源時什麼都不保護，卻照樣收費。要不要疊好幾層 WAF 用威脅模型回答，低流量時不必。',
+              'WAF 的地區、Bot 規則也可能擋到自己的 CI：部署驗證改從雲端內部檢查，不要為了 CI 放寬規則。',
+            ],
+            related: ['tls-termination', 'firewall', 'security-layers', 'ts-ci-403'],
           },
           {
             id: 'ddos',
@@ -230,7 +237,11 @@ export const groups: Group[] = [
               'LAN 是家裡、公司或機房內部的網路（私有 IP），WAN 是連到外面的廣域網路；路由器站在兩者交界。',
             host: '路由器、交換器（家裡是你的；機房是公司的；雲端是虛擬化的）',
             tags: ['私有 IP 10 / 172.16 / 192.168', '交換器 Switch', '對外 IP'],
-            related: ['router-nat', 'vpc'],
+            details: [
+              '架構意義：決定哪些服務對外、哪些只留內網。資料庫、Redis、Kafka 留在 LAN，只有 80 / 443 對 WAN 開放；雲端的 VPC 就是雲上的 LAN。',
+              '開發時想讓同一個 Wi-Fi 的手機連到電腦上的服務，要另外處理綁定位址、localhost 與 HTTPS，見「本機服務分享給同一個 Wi-Fi 的裝置」。',
+            ],
+            related: ['router-nat', 'vpc', 'lan-dev-sharing'],
           },
           {
             id: 'firewall',
@@ -239,11 +250,26 @@ export const groups: Group[] = [
               '依 IP、Port、協定決定放行或拒絕（L3 / L4），不看 HTTP 內容；Inbound 管誰能連進來，Outbound 管能連出去哪裡。',
             host: '作業系統（iptables、Windows 防火牆）或雲端虛擬網路（Security Group）；金融業機房常見硬體防火牆',
             tags: ['Security Group', 'iptables', 'Windows 防火牆', '硬體防火牆', 'Inbound', 'Outbound'],
+            tables: [
+              {
+                caption: '典型的雲端三層：每個 Security Group 的進出規則',
+                columns: ['Security Group', 'Inbound（誰能連進來）', 'Outbound（能連去哪）'],
+                rows: [
+                  ['Load Balancer', '443（80 轉 443），只來自 CDN 的 IP 範圍', '8080 → App 的 SG'],
+                  ['App', '8080 只來自 Load Balancer 的 SG', '5432 → 資料庫的 SG；443 經 NAT 連外'],
+                  ['資料庫', '5432 只來自 App 的 SG', '不需要'],
+                ],
+              },
+            ],
             details: [
               'Security Group 由 AWS 在虛擬化層執行，你只填規則；iptables 跑在你那台虛擬機的作業系統裡，規則自己寫。',
               '原則：Public interface 越少越好，對外只開 80 / 443。',
+              'Security Group 可以互相引用：資料庫的 5432 來源填「App 的 SG」，不寫死 IP，App 換了 IP 也不用改規則。',
+              'Security Group 是有狀態的：只會主動連出去的服務（例如排程 ETL）不用開任何 Inbound，回應會自動放行。',
+              '講 Inbound / Outbound 前先講清楚以誰為中心：同一個請求，對前端是 Outbound，對後端是 Inbound。',
+              '維運時暫時開給自己的 /32，寫上備註、用完立刻撤銷；資料庫不要設成公開存取。',
             ],
-            related: ['waf', 'ports-overview'],
+            related: ['waf', 'ports-overview', 'vpc'],
           },
           {
             id: 'load-balancer',
@@ -252,7 +278,12 @@ export const groups: Group[] = [
               '把流量分給多台後端並做健康檢查；L4 只看 IP / Port，L7 看得懂 HTTP、可依路徑分流。兩種都能做 TLS 終止（NLB 也有 TLS listener），但只有 L7 看得到 HTTP 內容。',
             host: '雲端代管（ALB、NLB）或主機上的軟體（HAProxy、Nginx）；機房常見 F5',
             tags: ['L4 / L7', 'ALB', 'NLB', 'HAProxy', 'F5', 'Health Check'],
-            related: ['reverse-proxy', 'tls-termination'],
+            details: [
+              '健康檢查要打 readiness（準備好接流量了嗎），不是只看 process 還活著；健康的目標數為 0 時，使用者看到的是 503。',
+              'L7 Load Balancer 可以依 Host 分流：同一台 ALB 把 auth.example.com 轉給身分服務、api.example.com 轉給 API，兩個網域共用一張憑證。',
+              'ALB 的 IP 會變，AWS 只給 DNS 名稱；重建 ALB 後 DNS 名稱也會變，指向它的 CNAME 要跟著改。',
+            ],
+            related: ['reverse-proxy', 'tls-termination', 'ts-503'],
           },
           {
             id: 'reverse-proxy',
@@ -260,8 +291,25 @@ export const groups: Group[] = [
             summary:
               '依網域、路徑把請求轉給對的服務；常由 Nginx 或 K8s Ingress 扮演，實務上常和 Load Balancer 合併（如 AWS ALB 依路徑分流）。',
             host: '你自己：Nginx / K8s Ingress 裝在租來的機器上（或由 ALB 代管扮演）',
-            tags: ['Nginx', 'K8s Ingress', 'ALB 路徑規則'],
-            related: ['nginx', 'load-balancer', 'container'],
+            tags: ['Nginx', 'K8s Ingress', 'ALB 路徑規則', 'X-Forwarded-For', 'resolver'],
+            tables: [
+              {
+                caption: '後端位址登記在哪、什麼時候查 DNS',
+                columns: ['軟體', '後端登記在哪', '什麼時候解析域名'],
+                rows: [
+                  ['Nginx', 'proxy_pass / upstream', '預設只在啟動或 reload 時解析一次；用 resolver + 變數才會依 TTL 重新解析'],
+                  ['AWS ALB', 'Target Group（Instance / IP / Lambda）', '不用解析，直接用 ID 或 IP，搭配健康檢查'],
+                  ['IIS + ARR', 'Server Farm', '走 Windows 系統 DNS，照 TTL 過期'],
+                ],
+              },
+            ],
+            details: [
+              '反向代理收到請求時不會每次都查 DNS：Host header 只拿來比對 server_name，後端位址是事先登記好的。',
+              '常見的坑：Nginx 的 proxy_pass 寫死一個會換 IP 的域名（雲端 Load Balancer、K8s Service），後端 IP 換了還是打舊的。ALB 自己的 IP 也會變，放在 ALB 前面的 Nginx 要用 resolver + 變數。',
+              '放在終止 TLS 的代理後面時，要轉送 X-Forwarded-For / X-Forwarded-Proto / Host，而且後端只信任自己的代理；設錯會無限重導、callback 變成 http、限流把所有人一起擋。',
+              'CloudFront、ALB 也能當反向代理：依路徑把 /api/* 轉給 API、其他轉給靜態檔，前後端同源就不需要 CORS。',
+            ],
+            related: ['nginx', 'load-balancer', 'container', 'ts-redirect-loop', 'ts-rate-limit-all'],
           },
           {
             id: 'api-gateway',
@@ -309,6 +357,31 @@ export const groups: Group[] = [
               '例外是公司自有機房（On-Premise）：從防火牆、Load Balancer 到伺服器都是公司自己的，常見硬體防火牆、F5；銀行核心系統（Mainframe / AS400）多半是這種環境。',
             ],
             related: ['host-physical', 'aws', 'cloudflare'],
+          },
+          {
+            id: 'lan-dev-sharing',
+            title: '本機服務分享給同一個 Wi-Fi 的裝置',
+            summary: '想用手機測電腦上的開發伺服器，要過三關：服務綁的位址、設定裡的 localhost、HTTPS。',
+            host: '你的電腦：開發伺服器、Docker、本機反向代理（Caddy、Nginx）',
+            tags: ['127.0.0.1 / 0.0.0.0', '安全環境 Secure Context', 'Caddy', '自簽 CA'],
+            tables: [
+              {
+                columns: ['綁定位址', '誰連得到'],
+                rows: [
+                  ['127.0.0.1', '只有這台電腦自己'],
+                  ['某張網卡的 IP（例如 192.168.1.23）', '連得到這張網卡的裝置'],
+                  ['0.0.0.0', '所有網卡，包括區網裡的其他裝置'],
+                ],
+              },
+            ],
+            details: [
+              '不要把所有服務都改綁 0.0.0.0：資料庫、管理介面會一起暴露。只開一個反向代理的 HTTPS port 給區網，後面的服務維持 127.0.0.1。',
+              '手機上的 localhost 指的是手機自己：前端、API、登入服務的網址都要改成電腦的區網 IP 或網域，登入服務的 redirect URI 也要另外登記。',
+              '瀏覽器只把 localhost 和 HTTPS 當安全環境；用區網 IP 走 HTTP 時，crypto.subtle（PKCE 要用）和 Service Worker 都不能用。',
+              '做法：本機反向代理（例如 Caddy）做 TLS 終止，用自簽 CA 簽憑證，其他裝置要安裝並信任這張 CA（iPhone 還要到「憑證信任設定」打開）。用 IP 連線時沒有 SNI，要指定預設憑證。',
+              '想從外面連回家裡，用 Tailscale 或 Cloudflare Tunnel，不必在路由器開 Port。',
+            ],
+            related: ['ts-lan-dev', 'wan-lan', 'cf-tunnel', 'tailscale', 'pkce'],
           },
         ],
       },
@@ -1025,8 +1098,8 @@ export const groups: Group[] = [
       {
         title: '身分',
         topics: [
-          { id: 'oauth2', title: 'OAuth 2.0', summary: '授權框架：讓第三方拿到「有限權限的 Access Token」，不用交出密碼。', host: '走 HTTPS', related: ['authn'] },
-          { id: 'oidc', title: 'OIDC', summary: '在 OAuth 2.0 上加一層「登入」：多了 ID Token（JWT）說明你是誰。Keycloak 就是 OIDC 提供者。', host: '走 HTTPS', related: ['authn'] },
+          { id: 'oauth2', title: 'OAuth 2.0', summary: '授權框架：讓第三方拿到「有限權限的 Access Token」，不用交出密碼。', host: '走 HTTPS', related: ['oauth-oidc', 'pkce', 'authn'] },
+          { id: 'oidc', title: 'OIDC', summary: '在 OAuth 2.0 上加一層「登入」：多了 ID Token（JWT）說明你是誰。Keycloak 就是 OIDC 提供者。', host: '走 HTTPS', related: ['oauth-oidc', 'token-types', 'authn'] },
           { id: 'saml', title: 'SAML', summary: 'XML 格式的企業 SSO 協定，舊系統與大型企業常見。', host: '走 HTTPS（XML）' },
           { id: 'ldap', title: 'LDAP', summary: '公司帳號目錄（Active Directory）查詢協定（389 / 636）。', tags: ['389 / 636', 'Active Directory'] },
         ],
@@ -1280,7 +1353,7 @@ export const groups: Group[] = [
             title: '身分驗證 AuthN',
             summary: '確認「你是誰」：登入、OAuth / OIDC、MFA。Keycloak 可以自架成身分提供者，簽發 JWT 給後端驗證。',
             tags: ['OAuth 2.0', 'OIDC', 'MFA', 'Keycloak', 'JWT'],
-            related: ['oidc', 'oauth2', 'api-gateway', 'session-jwt'],
+            related: ['oauth-oidc', 'pkce', 'identity-broker', 'api-gateway', 'session-jwt'],
           },
           {
             id: 'session-jwt',
@@ -1321,6 +1394,102 @@ export const groups: Group[] = [
             summary: '密碼與 API Key 不寫死在程式碼裡，改用環境變數、Vault、AWS Secrets Manager。',
             tags: ['環境變數', 'Vault', 'Secrets Manager'],
             related: ['cicd'],
+          },
+        ],
+      },
+      {
+        title: '登入流程 OAuth 2.0 / OIDC',
+        note: '完整走一次見封包旅程「情境 B：登入流程」。',
+        topics: [
+          {
+            id: 'oauth-oidc',
+            title: 'OAuth 2.0 vs OIDC',
+            summary:
+              'OAuth 2.0 管「授權」：讓 App 拿到 Access Token 去存取資源，不規定你是誰。OIDC 建在 OAuth 2.0 上，多發一張 ID Token（一定是 JWT）說明登入的人是誰。「用 Google 登入」是 OIDC；「讓 App 讀你的雲端硬碟」是 OAuth 2.0。',
+            host: '身分服務 IdP（Keycloak、Google、Auth0、Cognito）發 token；前端負責導轉與保管 token；後端 API 負責驗 token',
+            tags: ['OAuth 2.0', 'OIDC', 'IdP', 'scope', 'Discovery', 'JWKS'],
+            tables: [
+              {
+                columns: ['項目', 'OAuth 2.0', 'OIDC'],
+                rows: [
+                  ['回答的問題', '這個 App 可以做什麼？', '登入的人是誰？'],
+                  ['主要 token', 'Access Token（格式不限，不一定是 JWT）', '多一張 ID Token（JWT）'],
+                  ['scope', '自訂，例如 drive.readonly', '一定要有 openid，常加 profile、email'],
+                  ['標準端點', 'authorize、token', '再加 discovery（/.well-known/openid-configuration）、JWKS、userinfo'],
+                  ['使用者資訊', '沒有標準格式', '標準 claims：sub、iss、aud、email、email_verified'],
+                  ['典型用途', '第三方存取 API、服務對服務', 'SSO、社群登入'],
+                ],
+              },
+            ],
+            related: ['token-types', 'pkce', 'oauth2', 'oidc', 'authn'],
+          },
+          {
+            id: 'token-types',
+            title: 'ID Token / Access Token / Refresh Token',
+            summary:
+              '登入後會拿到三種 token，各給不同對象看：ID Token 給前端知道你是誰，Access Token 給 API，Refresh Token 用來換新的 Access Token。',
+            tags: ['ID Token', 'Access Token', 'Refresh Token', 'Bearer'],
+            tables: [
+              {
+                columns: ['Token', '給誰看', '用途', '注意'],
+                rows: [
+                  ['ID Token', '前端', '知道登入的人是誰', '不能拿去呼叫 API'],
+                  ['Access Token', '後端 API', '每次呼叫帶 Authorization: Bearer', '短效（5～15 分鐘）；API 要驗簽章、iss、aud、exp'],
+                  ['Refresh Token', '身分服務', '換新的 Access Token', '長效、要能撤銷；SPA 盡量不碰，或放 HttpOnly Cookie'],
+                ],
+              },
+            ],
+            details: [
+              'Access Token 放記憶體，不放 localStorage（XSS 讀得到）；重新整理後用 IdP 的登入 session 靜默換回來。',
+              'Refresh Token 每用一次就換新的、作廢舊的（Rotation）；舊的被重複使用代表外洩，整組作廢。',
+              'Refresh 失敗時立刻清掉登入狀態、隱藏受保護的畫面，不要自動重登，以免陷入重導迴圈。',
+            ],
+            related: ['session-jwt', 'jwt-verify', 'oauth-oidc'],
+          },
+          {
+            id: 'pkce',
+            title: '授權碼流程 Authorization Code + PKCE',
+            summary:
+              '瀏覽器與手機 App 的標準登入流程：先導到 IdP 拿一次性的授權碼，再用授權碼加上只有自己知道的 code_verifier 換 token。SPA 放不了 client secret，PKCE 就是用來代替它的。',
+            host: '前端的 OIDC 程式庫（例如 oidc-client-ts、keycloak-js）與 IdP',
+            tags: ['PKCE', 'S256', 'state', 'nonce', 'redirect_uri', 'Client Credentials'],
+            details: [
+              '前端產生隨機的 code_verifier，送出它的 SHA-256 雜湊 code_challenge；換 token 時再送原值，IdP 比對相符才發 token。授權碼在網址上被偷看到，也換不到 token。',
+              'state 防 CSRF（導回來時要和送出去的一樣），nonce 防 ID Token 重放。',
+              'redirect_uri 必須和 IdP 登記的完全一致，不要用萬用字元；每多一種對外網址（正式、區網、Tailscale），就要多登記一個。',
+              '服務對服務沒有使用者，用 Client Credentials。不要再用 Implicit（token 直接放網址）和 Password grant（App 直接收帳密）。',
+              '不必開瀏覽器也能測：curl authorize 端點，帶上 client_id、redirect_uri、scope=openid 和 code_challenge，回 200 就代表 redirect_uri 被接受。',
+            ],
+            related: ['oauth-oidc', 'token-types', 'browser-security', 'ts-redirect-loop'],
+          },
+          {
+            id: 'jwt-verify',
+            title: 'API 怎麼驗 Access Token（JWKS）',
+            summary: 'API 收到 JWT 不能 decode 完就相信：要用 IdP 公開的 JWKS 驗簽章，再檢查 iss、aud、exp。',
+            host: '你的 API（例如 Spring Security 的 Resource Server）',
+            tags: ['JWKS', 'kid', 'RS256 / ES256', 'iss', 'aud', 'exp'],
+            details: [
+              '依 token header 的 kid 找到對應的公鑰並快取；IdP 換金鑰時 kid 會變，API 再抓一次就好。',
+              '用 RS256 / ES256 這類非對稱簽章：只有 IdP 有私鑰，驗證端只拿公鑰。所有服務共用一把 HMAC secret 時，任何一個外洩都能偽造 token。',
+              '拒絕 alg=none、處理時鐘誤差；ID Token 不能拿來當 Access Token。',
+              'API 只信任自己的 IdP（固定一個 issuer）；IdP 換了對外網址，舊 token 的 iss 就對不上。',
+            ],
+            related: ['token-types', 'session-jwt', 'ts-auth'],
+          },
+          {
+            id: 'identity-broker',
+            title: '身分代理 Identity Broker（自己的 IdP 串 Google）',
+            summary:
+              '讓自己的 IdP（例如 Keycloak）去串 Google、LINE 等外部登入，系統內部只認自己的 IdP。之後加新的登入方式，API 不用改。',
+            host: '自架或代管的 IdP（Keycloak、Auth0、Cognito）',
+            tags: ['Keycloak', 'Google 登入', 'issuer + subject', '帳號連結'],
+            details: [
+              'API 只看到自己 IdP 發的 token，看不到 Google 的 token；自己的 IdP 在背後用授權碼向 Google 換 token。',
+              '用不會變的 (issuer, subject) 識別一個身分，一個帳號可以對應多筆；Email 會改，不拿來當身分。',
+              '不要只因 Email 相同就自動合併帳號（有帳號被接管的風險）：第一次用 Google 登入時，先要求輸入原本的密碼再連結，MFA 照樣要求。',
+              '在 Google Cloud Console 建 OAuth Client 時，Authorized redirect URI 填的是 IdP 的 broker 端點，不是前端網址；換網址就要補登記，否則 Google 回 redirect_uri_mismatch。',
+            ],
+            related: ['oauth-oidc', 'pkce', 'authn', 'iam'],
           },
         ],
       },
@@ -1387,23 +1556,29 @@ export const groups: Group[] = [
           {
             id: 'ts-overview',
             title: '症狀對照表',
-            summary: '常見的 12 種症狀一次看：多半是哪一層、先查什麼。',
+            summary: '常見的 18 種症狀一次看：多半是哪一層、先查什麼。',
             tables: [
               {
                 columns: ['症狀', '多半是哪一層', '先查什麼'],
                 rows: [
                   ['ERR_NAME_NOT_RESOLVED', 'DNS', 'dig / nslookup、DNS 紀錄、TTL 與傳播'],
+                  ['剛新增的 DNS 紀錄查不到', 'DNS 解析器的快取', 'dig @權威 DNS、換 1.1.1.1 查、curl --resolve 繞過本機快取'],
                   ['TLS / 憑證錯誤', '第一個終止 TLS 的節點（CDN / LB / Nginx）', '憑證是否過期、網域是否相符、中繼憑證鏈、SNI'],
                   ['Connection refused', '主機上沒有程式在 listen 那個 port', '服務是否啟動、port 設定、容器 port mapping'],
+                  ['手機連不到電腦上的開發伺服器', '本機服務的監聽位址與網址設定', '是不是只綁 127.0.0.1、設定裡有沒有寫死 localhost、要不要 HTTPS'],
                   ['連線逾時 Timeout', '網路層把封包丟掉了', '防火牆規則、Security Group inbound、路由、NAT；ping / traceroute 看斷在哪一跳'],
                   ['CORS error', '瀏覽器的同源政策', 'preflight OPTIONS 回應、Access-Control-Allow-Origin、credentials 設定'],
                   ['401 / 403', '身份 / 權限', 'token 是否過期、Cookie 屬性、角色權限'],
+                  ['登入後無限重導、callback 變成 http://', 'TLS 在前面的代理終止，後端以為自己跑在 http', 'X-Forwarded-Proto / Host 有沒有轉送、後端是否信任這層代理'],
                   ['502 Bad Gateway', '代理後面的上游沒有正常回應', 'Nginx / LB error log、target health、程式是否 crash'],
                   ['503 Service Unavailable', '沒有可用的上游、限流或維護中', 'LB 健康的 target 數量、Auto Scaling、rate limit'],
+                  ['限流把所有使用者一起擋', '後端看到的來源 IP 全是代理的 IP', '有沒有讀 X-Forwarded-For、可信代理（trusted proxies）的網段'],
                   ['504 Gateway Timeout', '上游太慢，超過代理的 timeout', '慢查詢、外部 API、DB 連線池、proxy timeout 設定'],
                   ['500 Internal Server Error', '應用程式內部錯誤', 'App log（用 request id 追）、例外堆疊'],
                   ['白畫面', '前端', 'Console 的 JS 錯誤、資源 404、舊版快取（index.html 引用的 hash）'],
+                  ['API 回傳 index.html', 'CDN / 反向代理把 SPA 的 fallback 套到 /api', '路徑規則的順序、回應的 Content-Type'],
                   ['只有部分使用者有問題', '快取或特定節點', 'CDN 快取、瀏覽器快取、某台主機或某個區域'],
+                  ['部署成功，CI 驗證卻回 403', 'CDN / WAF 擋下了 CI runner', 'WAF 事件紀錄；改從雲端內部確認部署結果'],
                 ],
               },
             ],
@@ -1415,7 +1590,17 @@ export const groups: Group[] = [
             title: 'ERR_NAME_NOT_RESOLVED',
             summary: '多半是DNS：網域查不到 IP，請求根本還沒出發。',
             details: ['先查：dig / nslookup、DNS 紀錄、TTL 與傳播。'],
-            related: ['dns-cdn', 'dns'],
+            related: ['dns-cdn', 'dns', 'ts-dns-new'],
+          },
+          {
+            id: 'ts-dns-new',
+            title: '剛新增的 DNS 紀錄查不到',
+            summary: '多半是 DNS 解析器的快取：新增紀錄之前有人查過，解析器把「查無此名」（NXDOMAIN）也快取起來了。',
+            details: [
+              '先查：dig @權威 DNS 直接問源頭；換 1.1.1.1 或 8.8.8.8 查；curl --resolve 網域:443:IP 繞過本機快取。',
+              '「查無此名」的快取時間由網域的 SOA 紀錄決定，等它過期就好；dig +trace 可以從根伺服器一路追到權威 DNS，看卡在哪一層。',
+            ],
+            related: ['dns-cdn', 'dns', 'ts-dns'],
           },
           {
             id: 'ts-tls',
@@ -1430,6 +1615,17 @@ export const groups: Group[] = [
             summary: '多半是主機上沒有程式在 listen 那個 port：封包到了主機，但被直接拒絕。',
             details: ['先查：服務是否啟動、port 設定、容器 port mapping。'],
             related: ['ports-overview', 'container'],
+          },
+          {
+            id: 'ts-lan-dev',
+            title: '手機連不到電腦上的開發伺服器',
+            summary: '多半是服務只綁在 127.0.0.1，或設定裡寫死 localhost：手機上的 localhost 指的是手機自己。',
+            details: [
+              '先查：lsof -nP -iTCP -sTCP:LISTEN 看服務綁在哪個位址；前端、API、登入服務的網址設定有沒有寫死 localhost。',
+              '不要把所有服務都改綁 0.0.0.0，資料庫、管理介面會一起暴露；只開一個反向代理的 HTTPS port 給區網。',
+              '用區網 IP 走 HTTP 時，瀏覽器不算「安全環境」，crypto.subtle、PKCE 登入、Service Worker 都不能用，所以要用 HTTPS。',
+            ],
+            related: ['lan-dev-sharing', 'wan-lan', 'ports-overview'],
           },
           {
             id: 'ts-timeout',
@@ -1450,7 +1646,18 @@ export const groups: Group[] = [
             title: '401 / 403',
             summary: '多半是身份 / 權限：401 是沒登入或憑證無效，403 是登入了但沒權限。',
             details: ['先查：token 是否過期、Cookie 屬性、角色權限。'],
-            related: ['authn', 'iam', 'session-jwt'],
+            related: ['authn', 'iam', 'session-jwt', 'jwt-verify'],
+          },
+          {
+            id: 'ts-redirect-loop',
+            title: '登入後無限重導、callback 變成 http://',
+            summary:
+              '多半是 TLS 在前面的代理（CDN、ALB、Nginx）終止，後端收到的是 HTTP，以為自己跑在 http 上，產生錯的網址。',
+            details: [
+              '先查：代理有沒有轉送 X-Forwarded-Proto 和 Host、後端或 IdP 有沒有設定信任這層代理、IdP 的對外網址（hostname）設定。',
+              '同一個原因也會讓 Cookie 的 Secure 判斷錯誤，或讓重設密碼信裡的連結被 Host header 操控。',
+            ],
+            related: ['reverse-proxy', 'tls-termination', 'pkce'],
           },
           {
             id: 'ts-502',
@@ -1465,6 +1672,16 @@ export const groups: Group[] = [
             summary: '多半是沒有可用的上游、限流或維護中：例如 Target Group 裡沒有註冊任何 target，或後端被限流擋下。',
             details: ['先查：LB 健康的 target 數量、Auto Scaling、rate limit。'],
             related: ['load-balancer', 'api-gateway'],
+          },
+          {
+            id: 'ts-rate-limit-all',
+            title: '限流把所有使用者一起擋',
+            summary: '多半是後端看到的來源 IP 全是代理的 IP：所有人被當成同一個人，一起被限流、一起被封鎖。',
+            details: [
+              '先查：程式有沒有從 X-Forwarded-For 取真實 IP、可信代理（trusted proxies）的網段有沒有設對。',
+              '只信任自己的代理加上的那一段：X-Forwarded-For 最左邊的值使用者可以自己偽造。',
+            ],
+            related: ['reverse-proxy', 'load-balancer', 'api-gateway'],
           },
           {
             id: 'ts-504',
@@ -1488,11 +1705,33 @@ export const groups: Group[] = [
             related: ['web-frontend', 'http-caching'],
           },
           {
+            id: 'ts-api-html',
+            title: 'API 回傳 index.html',
+            summary:
+              '多半是 CDN 或反向代理把 SPA 的 fallback（找不到檔案就回 index.html）也套到 /api 上：前端拿到 HTML，解析 JSON 失敗。',
+            details: [
+              '先查：路徑規則的順序（/api/* 要排在 SPA rewrite 之前）、回應的 Content-Type 是不是 text/html。',
+              'CDN 的 /api/* 規則還要設成不快取、轉送 Authorization header，否則會看到別人的資料或一直 401。',
+            ],
+            related: ['s3-cloudfront', 'reverse-proxy', 'ts-blank'],
+          },
+          {
             id: 'ts-partial',
             title: '只有部分使用者有問題',
             summary: '多半是快取或特定節點：同一個網址，有人正常、有人壞掉。',
             details: ['先查：CDN 快取、瀏覽器快取、某台主機或某個區域。'],
             related: ['http-caching', 'dns-cdn', 'load-balancer'],
+          },
+          {
+            id: 'ts-ci-403',
+            title: '部署成功，CI 驗證卻回 403',
+            summary:
+              '多半是 CDN / WAF 的地區或 Bot 規則擋下了 CI runner（GitHub 的 runner 多在美國）：服務其實好好的，是驗證的方法錯了。',
+            details: [
+              '先查：WAF 的事件紀錄是被哪一條規則擋下。',
+              '改從雲端內部確認部署結果（例如 ECS rollout 完成、執行中的是這次的 image），不要為了 CI 放寬邊界防護。',
+            ],
+            related: ['cicd', 'waf', 'cloudflare'],
           },
         ],
       },

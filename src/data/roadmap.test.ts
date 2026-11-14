@@ -79,6 +79,7 @@ const NOTE_SUBPAGES: [name: string, id: string][] = [
   // 資安
   ['同源政策與 CORS、前端資安', 'browser-security'],
   ['登入狀態 Cookie / Session vs JWT', 'session-jwt'],
+  ['OAuth 2.0 vs OIDC（含 Google 登入設定）', 'oauth-oidc'],
   // 交付與維運
   ['CI/CD', 'cicd'],
   ['IaC', 'iac'],
@@ -147,9 +148,14 @@ const KNOWLEDGE_POINTS = [
   // 資安
   'AuthN', 'MFA', 'Keycloak', 'IAM', 'RBAC', '最小權限', 'Secrets', 'Vault', 'Secrets Manager',
   '同源政策', 'CORS', 'CSP', 'XSS', 'CSRF', 'Cookie', 'Session', 'JWT', 'HttpOnly', 'SameSite',
+  'OAuth 2.0 vs OIDC', 'ID Token', 'Access Token', 'Refresh Token', 'PKCE', 'JWKS', 'Identity Broker',
   // 故障地圖
   '故障地圖', 'ERR_NAME_NOT_RESOLVED', 'Connection refused', 'Timeout', '401 / 403', '502 Bad Gateway',
   '503 Service Unavailable', '504 Gateway Timeout', '500', '白畫面', '只有部分使用者',
+  '剛新增的 DNS 紀錄查不到', '手機連不到電腦上的開發伺服器', '無限重導', '限流把所有使用者一起擋',
+  'API 回傳 index.html', 'CI 驗證卻回 403',
+  // 網路與流量入口的補充
+  '本機服務分享給同一個 Wi-Fi 的裝置', 'X-Forwarded-For', 'Origin 保護',
   // 交付與維運
   'CI/CD', 'GitHub Actions', 'Jenkins', 'Azure DevOps', 'Artifact', 'Rollback', 'IaC', 'Terraform', 'CloudFormation',
   'Ansible', 'Observability', 'Logs', 'Metrics', 'Traces', 'Prometheus', 'Grafana', 'ELK', 'Loki', 'CloudWatch',

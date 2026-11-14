@@ -2,8 +2,8 @@
 
 互動式教學網頁：看一個 HTTPS 請求怎麼從你的電腦走到資料庫、再走回來，以及路上每一層的知識點。
 
-- **世界地圖**：筆記的全部知識點，依「請求路徑（由外而內，右欄是整條路徑共用的 Port、通訊協定、宿主鏈）→ 橫切關注（資安、交付與維運、故障地圖）→ 供應商與知識」排列；點任何知識點看說明、宿主、相關工具、延伸閱讀，以及它出現在封包旅程的哪一站。
-- **封包旅程**：15 站的動畫路徑（雲端情境：Cloudflare → ALB → ECS Fargate → RDS）
+- **世界地圖**：筆記的全部知識點，依「請求路徑（由外而內，右欄是整條路徑共用的 Port、通訊協定、IP 與路由、宿主鏈）→ 橫切關注（資安、交付與維運、故障地圖）→ 供應商與知識」排列；點任何知識點看說明、宿主、相關工具、延伸閱讀，以及它出現在封包旅程的哪一站。
+- **封包旅程**：16 站的動畫路徑（雲端情境：Cloudflare → ALB → ECS Fargate → RDS）
   - 封包五層（L2 訊框、L3 IP、L4 TCP/UDP、TLS、L7 HTTP）在每一站是「讀取 / 封著不拆 / 加密看不到 / 在這裡拆開 / 在這裡改寫 / 不存在」，用信封層層包覆呈現
   - 每台機器內部的宿主鏈（實體機 → Hypervisor → 作業系統核心 → 容器 → runtime → Application Server → 你的程式）
   - TLS 加密段與內網明文段用不同線條標示（TLS 終止）
@@ -38,7 +38,7 @@ npm run build      # 型別檢查 + 打包到 dist/
 src/
   data/
     roadmap.ts               Road Map 全部分類與知識點（資料驅動）
-    scenarios/cloud-aws.ts   情境 A：節點、線段、15 個步驟、寬 / 窄兩種版面座標
+    scenarios/cloud-aws.ts   情境 A：節點、線段、16 個步驟、寬 / 窄兩種版面座標
     scenarios/index.ts       情境清單（新增情境只要加資料檔）
   components/
     map/                     RoadMapView、GroupCard、TopicDetail（抽屜）

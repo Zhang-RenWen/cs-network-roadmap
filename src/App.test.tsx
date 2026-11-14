@@ -56,7 +56,8 @@ describe('封包旅程', () => {
   })
 
   it('加密的層會顯示「加密，看不到」', () => {
-    renderAt('#/journey/5') // 家用路由器：rrree
+    const routerStep = defaultScenario.steps.findIndex((s) => s.id === 'router-nat') + 1
+    renderAt(`#/journey/${routerStep}`) // 家用路由器：rrree
     const layers = screen.getByRole('region', { name: /封包現在長這樣/ })
     expect(within(layers).getAllByText('在這裡改寫').length).toBeGreaterThanOrEqual(3)
     expect(within(layers).getByText('內容被加密，這一站看不到')).toBeInTheDocument()

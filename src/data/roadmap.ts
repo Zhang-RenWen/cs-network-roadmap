@@ -109,7 +109,7 @@ export const groups: Group[] = [
               '只拆到 IP / Port（L3 / L4），看不到 HTTP 內容。',
               '外面的連線預設進不來，要設定 Port 轉發；很多家用網路在電信業者的 CGNAT 後面，連真正的對外 IP 都沒有。',
             ],
-            related: ['wan-lan', 'nat-gateway', 'cf-tunnel'],
+            related: ['default-gateway', 'wan-lan', 'nat-gateway', 'cf-tunnel'],
           },
           {
             id: 'isp',
@@ -122,7 +122,7 @@ export const groups: Group[] = [
               '只轉送、不解密。看得到：雙方 IP、TLS 握手時的 SNI 網域、流量大小與時間。',
               '看不到：網址路徑、Header、內容、密碼。',
             ],
-            related: ['ip', 'tls'],
+            related: ['traceroute-hops', 'bgp', 'ip', 'tls'],
           },
         ],
       },
@@ -966,8 +966,8 @@ export const groups: Group[] = [
       {
         title: '網路 / 傳輸',
         topics: [
-          { id: 'ip', title: 'IP', summary: '只管「送到哪台機器」（位址、路由），不保證送達。IPv4 / IPv6。', host: '網路卡 / 實體網路', tags: ['IPv4', 'IPv6', 'L3'] },
-          { id: 'icmp', title: 'ICMP', summary: '錯誤與診斷訊息。', host: '跑在 IP 上', tags: ['ping', 'traceroute'] },
+          { id: 'ip', title: 'IP', summary: '只管「送到哪台機器」（位址、路由），不保證送達。IPv4 / IPv6。', host: '網路卡 / 實體網路', tags: ['IPv4', 'IPv6', 'L3'], related: ['routing-table', 'ttl-hop'] },
+          { id: 'icmp', title: 'ICMP', summary: '錯誤與診斷訊息：ping、traceroute 都靠它。跑在 IP 層，沒有 Port（和 TCP / UDP 不同）。', host: '跑在 IP 上', tags: ['ping', 'traceroute'], related: ['ping', 'traceroute', 'ttl-hop'] },
           { id: 'tcp', title: 'TCP', summary: '連線導向、保證順序與送達（三向交握、重傳），較慢但可靠。', host: '跑在 IP 上', tags: ['三向交握', 'HTTP/1.1', 'HTTP/2', 'SSH', '資料庫連線'] },
           { id: 'udp', title: 'UDP', summary: '無連線、不保證送達，快且輕。', host: '跑在 IP 上', tags: ['DNS 查詢', '影音串流', '線上遊戲'] },
           { id: 'quic', title: 'QUIC', summary: '在 UDP 上自己做可靠傳輸並內建 TLS：建立連線更快、切換網路不斷線。', host: '跑在 UDP 上', tags: ['HTTP/3'] },
@@ -1029,6 +1029,141 @@ export const groups: Group[] = [
           { id: 'oidc', title: 'OIDC', summary: '在 OAuth 2.0 上加一層「登入」：多了 ID Token（JWT）說明你是誰。Keycloak 就是 OIDC 提供者。', host: '走 HTTPS', related: ['authn'] },
           { id: 'saml', title: 'SAML', summary: 'XML 格式的企業 SSO 協定，舊系統與大型企業常見。', host: '走 HTTPS（XML）' },
           { id: 'ldap', title: 'LDAP', summary: '公司帳號目錄（Active Directory）查詢協定（389 / 636）。', tags: ['389 / 636', 'Active Directory'] },
+        ],
+      },
+    ],
+  },
+
+  {
+    id: 'routing',
+    zone: 'path',
+    parent: 'network',
+    title: 'IP 與路由 Routing（traceroute / ping）',
+    summary:
+      '封包怎麼從你家走到對方機房：沿路每台路由器只查自己的路由表，決定下一跳交給誰；IP 標頭的 TTL 每過一跳減 1。traceroute 看路徑，ping 看通不通。',
+    host: '每台機器的作業系統核心（你的電腦、伺服器都有自己的路由表）；沿路的路由器（家用路由器韌體、ISP 與骨幹的路由器、雲端的 VPC 路由器）。',
+    sections: [
+      {
+        title: '路由怎麼運作',
+        topics: [
+          {
+            id: 'routing-table',
+            title: '路由表 Routing Table',
+            summary:
+              '每台機器都有一張路由表：目的 IP 落在哪個網段，就交給哪個下一跳。同時符合好幾條時選網段最小的那條（最長前綴匹配），都不符合就走預設路由 0.0.0.0/0。',
+            host: '作業系統核心、路由器韌體；雲端是 VPC 的 Route Table',
+            tags: ['最長前綴匹配', '0.0.0.0/0', 'CIDR', 'netstat -rn', 'ip route', 'route print'],
+            tables: [
+              {
+                caption: '家用電腦的路由表（簡化）',
+                columns: ['目的網段', '交給', '意思'],
+                rows: [
+                  ['192.168.1.0/24', '直接送', '同一個區網，用 ARP 問出對方的 MAC 直接送'],
+                  ['0.0.0.0/0', '192.168.1.1', '其他全部交給預設閘道（你家路由器）'],
+                ],
+              },
+            ],
+            details: [
+              '看自己的路由表：macOS netstat -rn、Linux ip route、Windows route print。',
+              '雲端也一樣：VPC 的 Route Table 決定 Subnet 是 Public 還是 Private，有 0.0.0.0/0 → Internet Gateway 的就是 Public Subnet。',
+            ],
+            related: ['default-gateway', 'vpc', 'ip'],
+          },
+          {
+            id: 'default-gateway',
+            title: '預設閘道 Default Gateway',
+            summary:
+              '目的 IP 不在同一個網段時，封包一律先交給預設閘道（家裡通常是路由器 192.168.1.1）。所以訊框的目的 MAC 是路由器，IP 的目的卻是對方伺服器。',
+            host: '家用 / 公司路由器；AWS VPC 是 Subnet 網段的 +1 位址（例如 10.0.1.1）',
+            tags: ['DHCP', 'ARP', '同網段直送'],
+            details: [
+              'MAC 每一跳都換，目的 IP 一路不變（經過 NAT 時改的是來源 IP）。',
+              'DHCP 在連上網路時一起發下來：IP、子網路遮罩、預設閘道、DNS。',
+              '預設閘道錯了的典型症狀：區網內連得到，外面全部連不上。',
+            ],
+            related: ['routing-table', 'router-nat', 'dhcp'],
+          },
+          {
+            id: 'ttl-hop',
+            title: 'TTL 與跳數 Hop',
+            summary:
+              '每經過一台路由器算一跳（hop），IP 標頭的 TTL 就減 1；減到 0 時路由器丟掉封包、回一個 ICMP Time Exceeded，避免路由設錯時封包無限繞圈。',
+            tags: ['TTL', 'IPv6 Hop Limit', 'ICMP Time Exceeded', '64 / 128'],
+            details: [
+              '起始值看作業系統：macOS、Linux 是 64，Windows 是 128。',
+              'IPv6 改名叫 Hop Limit，作用相同。',
+              '和 DNS 紀錄的 TTL 不是同一件事：DNS 的 TTL 是快取幾秒，IP 的 TTL 是還能走幾跳。',
+            ],
+            related: ['traceroute', 'icmp', 'ip'],
+          },
+          {
+            id: 'bgp',
+            title: 'ISP 之間的路由 BGP',
+            summary:
+              '網際網路由幾萬個自治網路（AS）組成，中華電信、Cloudflare、AWS 各是一個。AS 之間用 BGP 互相宣告「這些 IP 網段往我這裡送」，骨幹路由器的路由表就是這樣來的。',
+            host: '電信業者、雲端業者的邊界路由器',
+            tags: ['AS 自治系統', 'BGP', 'IX 交換點', 'Anycast'],
+            details: [
+              'ISP 之間在網際網路交換點（IX）或私有互連直接交換流量。',
+              'Anycast：Cloudflare 在全球很多機房宣告同一段 IP，BGP 會把你帶到路由上最近的機房，所以 1.1.1.1 在哪裡連都快。',
+              'BGP 宣告錯誤（route leak、劫持）會讓一大段網際網路連不上，歷史上幾次大型斷線都是這個原因。',
+            ],
+            related: ['isp', 'cloudflare', 'routing-table'],
+          },
+        ],
+      },
+      {
+        title: '診斷工具',
+        topics: [
+          {
+            id: 'ping',
+            title: 'ping',
+            summary: '送 ICMP Echo Request、等 Echo Reply：回答網路層通不通、來回多久（RTT）、掉包率，不代表服務正常。',
+            host: '作業系統內建指令',
+            tags: ['ICMP Echo', 'RTT', '掉包率'],
+            details: [
+              'ICMP 跑在 IP 層、沒有 Port：ping 得通不代表 443 有開；測 Port 要用 nc -vz 主機 443 或 curl -v。',
+              'ping 不通不一定是斷線：很多主機、防火牆預設擋 ICMP。AWS Security Group 沒放行 ICMP 時，ping EC2 會逾時，網站卻可能好好的。',
+            ],
+            related: ['icmp', 'traceroute', 'ports-overview'],
+          },
+          {
+            id: 'traceroute',
+            title: 'traceroute / mtr',
+            summary:
+              '利用 TTL 一跳一跳問出路徑：依序送 TTL = 1、2、3… 的探測封包，第 N 跳的路由器把 TTL 減到 0、丟掉並回 ICMP Time Exceeded，就知道第 N 跳是誰。mtr 是 traceroute 加上持續 ping。',
+            host: '作業系統內建（Windows 是 tracert）；mtr 要另外安裝（brew install mtr）',
+            tags: ['tracert', 'mtr', 'ICMP Time Exceeded', '* * *'],
+            details: [
+              '* * * 不一定是斷線：很多路由器不回 ICMP 或限制回應速度。後面的跳還有回應，中間的星號就可以忽略；從某一跳開始後面全部沒回應，才是真的斷在那附近。',
+              '中間某一跳掉包、後面都正常：通常是那台路由器把回 ICMP 排在低優先，不是真的掉包。',
+              'macOS / Linux 的 traceroute 預設送 UDP，Windows 的 tracert 送 ICMP；兩種都被擋時，Linux 可以改送 TCP（sudo traceroute -T -p 443 主機）。',
+              '回報網路問題給 ISP 或雲端客服時，附上 mtr 結果比一張錯誤截圖有用。',
+            ],
+            related: ['ttl-hop', 'traceroute-hops', 'ping', 'icmp'],
+          },
+          {
+            id: 'traceroute-hops',
+            title: 'traceroute 的每一跳是誰',
+            summary: 'traceroute 印出的那串 IP，就是「家用路由器 → ISP → 網際網路」那個箭頭的展開。',
+            tables: [
+              {
+                columns: ['跳數', '是誰', '怎麼認'],
+                rows: [
+                  ['第 1 跳', '你家 / 公司的路由器（預設閘道）', '私有 IP，通常是 192.168.x.1'],
+                  ['接下來幾跳', '中華電信等 ISP 的路由器', '反查名稱帶 ISP 的網域（例如 hinet.net）；在 CGNAT 後面會看到 100.64.x.x'],
+                  ['中間', '骨幹網路、跨國或跨 ISP 的交換點（IX）', '延遲突然多一大段，多半是過了海底電纜'],
+                  ['最後幾跳', '對方機房、雲端的邊界路由器（VPC 邊界 WAN / LAN）', 'IP 歸屬是 Cloudflare、AWS 等（mtr -z 會顯示 AS 號碼）；很多會回 * * *'],
+                  ['最後一行', '目的地', '你連的那個 IP'],
+                ],
+              },
+            ],
+            details: [
+              '開了 Cloudflare 代理，traceroute 只走到 Cloudflare 邊緣：DNS 回的是 Cloudflare 的 IP；Cloudflare 往 AWS 的那段是它新開的連線，從你這邊看不到。',
+              '進到雲端後連續 * * * 很正常：雲端內部的路由器多半不回應 traceroute。',
+            ],
+            related: ['router-nat', 'isp', 'wan-lan', 'cloudflare'],
+          },
         ],
       },
     ],
@@ -1260,7 +1395,7 @@ export const groups: Group[] = [
                   ['ERR_NAME_NOT_RESOLVED', 'DNS', 'dig / nslookup、DNS 紀錄、TTL 與傳播'],
                   ['TLS / 憑證錯誤', '第一個終止 TLS 的節點（CDN / LB / Nginx）', '憑證是否過期、網域是否相符、中繼憑證鏈、SNI'],
                   ['Connection refused', '主機上沒有程式在 listen 那個 port', '服務是否啟動、port 設定、容器 port mapping'],
-                  ['連線逾時 Timeout', '網路層把封包丟掉了', '防火牆規則、Security Group inbound、路由、NAT'],
+                  ['連線逾時 Timeout', '網路層把封包丟掉了', '防火牆規則、Security Group inbound、路由、NAT；ping / traceroute 看斷在哪一跳'],
                   ['CORS error', '瀏覽器的同源政策', 'preflight OPTIONS 回應、Access-Control-Allow-Origin、credentials 設定'],
                   ['401 / 403', '身份 / 權限', 'token 是否過期、Cookie 屬性、角色權限'],
                   ['502 Bad Gateway', '代理後面的上游沒有正常回應', 'Nginx / LB error log、target health、程式是否 crash'],
@@ -1300,8 +1435,8 @@ export const groups: Group[] = [
             id: 'ts-timeout',
             title: '連線逾時 Timeout',
             summary: '多半是網路層把封包丟掉了：連不上，也沒有任何回應。',
-            details: ['先查：防火牆規則、Security Group inbound、路由、NAT。'],
-            related: ['firewall', 'vpc', 'nat-gateway'],
+            details: ['先查：防火牆規則、Security Group inbound、路由、NAT；ping / traceroute 看斷在哪一跳（ping 不通不一定是斷線，很多主機預設擋 ICMP）。'],
+            related: ['firewall', 'vpc', 'nat-gateway', 'traceroute', 'ping'],
           },
           {
             id: 'ts-cors',

@@ -43,6 +43,7 @@ const NOTE_SUBPAGES: [name: string, id: string][] = [
   ['旁路：NAT Gateway、VPN、跳板機', 'nat-gateway'],
   ['網路埠 Port', 'ports'],
   ['通訊協定與連線方式 Protocols', 'protocols'],
+  ['IP 與路由 Routing（traceroute / ping）', 'routing'],
   ['傳輸效能：延遲、TCP、UDP 與 TLS 最佳化', 'transport-perf'],
   ['HTTP 協定演進', 'http-evolution'],
   // 執行環境
@@ -139,6 +140,8 @@ const KNOWLEDGE_POINTS = [
   'Polling', 'SSE', 'WebSocket', 'WebRTC', 'MQTT', 'CoAP', 'AMQP', 'STOMP', 'DHCP', 'NTP', 'SSH', 'RDP', 'SFTP', 'FTP',
   'SMB', 'SMTP', 'IMAP', 'POP3', 'OAuth 2.0', 'OIDC', 'SAML', 'LDAP',
   '傳輸效能', '緩步啟動', 'HTTP 協定演進', '多路複用',
+  // IP 與路由
+  '路由表', '預設閘道', 'TTL', 'Hop', 'BGP', 'ping', 'traceroute', 'mtr',
   // 宿主鏈
   'Hypervisor / VM', '作業系統', '容器引擎', '語言 runtime', '你的程式', '雲端平台直接承載',
   // 資安
@@ -214,7 +217,7 @@ describe('Road Map 資料', () => {
   it('共通基礎的卡片都掛在某個請求路徑分類底下', () => {
     const top = new Set(groups.filter((g) => g.zone === 'path' && !g.parent).map((g) => g.id))
     const basics = groups.filter((g) => g.parent)
-    expect(basics.map((g) => g.id)).toEqual(['ports', 'protocols', 'hostchain'])
+    expect(basics.map((g) => g.id)).toEqual(['ports', 'protocols', 'routing', 'hostchain'])
     for (const g of basics) {
       expect(top, g.id).toContain(g.parent)
       expect(g.zone, g.id).toBe('path')

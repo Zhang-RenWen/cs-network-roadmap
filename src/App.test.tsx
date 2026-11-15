@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { allTopicEntries } from './lib/roadmapIndex'
 import { defaultScenario, scenarios } from './data/scenarios'
+import { UPCOMING } from './data/upcoming'
 
 const total = defaultScenario.steps.length
 
@@ -180,6 +181,17 @@ describe('世界地圖', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('「即將加入」列出整理中的主題，而且不和現有知識點重複', () => {
+    renderAt('#/map')
+    const section = screen.getByRole('region', { name: '即將加入' })
+    const titles = UPCOMING.flatMap((a) => a.topics.map((t) => t.title))
+    for (const title of titles) expect(within(section).getByText(title)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: `還有 ${titles.length} 個整理中` })).toBeInTheDocument()
+
+    const existing = new Set(allTopicEntries.map((e) => e.topic.title))
+    for (const title of titles) expect(existing.has(title), title).toBe(false)
   })
 
   it('從網址直接打開知識點', () => {

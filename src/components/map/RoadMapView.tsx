@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import { groups, ROADMAP_SUBTITLE, ROADMAP_TITLE } from '../../data/roadmap'
 import { getScenario, scenarioParam } from '../../data/scenarios'
+import { UPCOMING, upcomingCount } from '../../data/upcoming'
 import type { Navigate } from '../../hooks/useHashRoute'
 import { allTopicEntries, getTopic, searchTopics } from '../../lib/roadmapIndex'
 import type { Zone } from '../../types'
@@ -24,6 +25,7 @@ const byZone = (zone: Zone) => groups.filter((g) => g.zone === zone)
 export function RoadMapView({ topicId, navigate }: Props) {
   const [query, setQuery] = useState('')
   const searchRef = useRef<HTMLInputElement>(null)
+  const upcomingRef = useRef<HTMLElement>(null)
   const matches = useMemo(() => searchTopics(query), [query])
   const entry = getTopic(topicId)
 
@@ -68,6 +70,18 @@ export function RoadMapView({ topicId, navigate }: Props) {
           </a>
           <span className="hero-stat">
             {groups.length} 個分類 · {allTopicEntries.length} 個知識點
+            {upcomingCount > 0 && (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="hero-upcoming"
+                  onClick={() => upcomingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                  還有 {upcomingCount} 個整理中
+                </button>
+              </>
+            )}
           </span>
         </div>
       </header>
@@ -145,6 +159,38 @@ export function RoadMapView({ topicId, navigate }: Props) {
           ))}
         </div>
       </section>
+
+      {upcomingCount > 0 && (
+        <section ref={upcomingRef} className="roadmap-band upcoming" aria-labelledby="zone-upcoming">
+          <h2 id="zone-upcoming" className="zone-heading">
+            即將加入
+          </h2>
+          <div className="upcoming-card">
+            <div className="upcoming-head">
+              <span className="upcoming-badge">整理中</span>
+              <h3>系統變大之後會遇到的事</h3>
+            </div>
+            <p className="upcoming-lead">
+              服務拆成很多個、流量變大之後，才會碰到的 {upcomingCount} 個主題。內容正在整理，之後會加進地圖。
+            </p>
+            <div className="upcoming-grid">
+              {UPCOMING.map((area) => (
+                <div key={area.area} className="upcoming-area">
+                  <h4>{area.area}</h4>
+                  <ul>
+                    {area.topics.map((t) => (
+                      <li key={t.title}>
+                        <strong>{t.title}</strong>
+                        <span>{t.summary}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {entry && <TopicDetail entry={entry} onClose={closeTopic} onOpenTopic={openTopic} onOpenStep={openStep} />}
     </div>
